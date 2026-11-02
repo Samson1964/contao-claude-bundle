@@ -1,0 +1,15 @@
+# MCP-Endpunkt (Streamable HTTP).
+#
+# Kein _scope: Die Route soll in keiner Contao-Firewall landen. Mit
+# _scope: backend leitete Contao jede Anfrage ohne Backend-Sitzung zur
+# Anmeldeseite um; angemeldet wird hier allein über den Bearer-Schlüssel.
+#
+# _token_check: false schaltet Contaos Request-Token-Prüfung für POST ab.
+# Ohne Scope prüft Contao sie zwar ohnehin nicht, der Schalter macht die
+# Absicht aber unabhängig von der Contao-Fassung fest.
+claude_mcp:
+    path: /mcp
+    defaults:
+        _controller: Schachbulle\ContaoClaudeBundle\Controller\McpController
+        _token_check: false
+    methods: [GET, POST, DELETE, OPTIONS]

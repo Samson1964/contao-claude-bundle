@@ -1,0 +1,17 @@
+# Composer
+/composer.lock
+/vendor/
+
+# PhpUnit
+/phpunit.xml
+/.phpunit.result.cache
+
+# Private Arbeitsnotizen, nicht veröffentlichen
+/TODO.md
+/CLAUDE.md
+/BERICHT.md
+/pruefstand/*.local.md
+/pruefstand/*.local.json
+
+# Spezifikation und Umsetzungsplan, nur lokal
+/docs/superpowers/

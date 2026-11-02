@@ -1,0 +1,42 @@
+# Alle Klassen unter src/ werden automatisch als Dienste registriert. Die
+# Rückrufe der Einstellungsmaske greifen über ihre #[AsCallback]-Attribute,
+# die Werkzeuge über die Schnittstelle ToolInterface (Tag contao_claude.tool).
+# Ausgenommen sind die Klassen, die Symfony bzw. der Contao Manager selbst
+# laden, die Ressourcen und die reinen Wertobjekte.
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+        bind:
+            string $projectDir: '%kernel.project_dir%'
+            string $uploadPath: '%contao.upload_path%'
+            string $previewScript: '%contao.preview_script%'
+            # Protokollsitzungen des älteren MCP-Verfahrens (nur Protokolldaten)
+            string $sessionDirectory: '%kernel.project_dir%/var/claude/mcp-sessions'
+            iterable $tools: !tagged_iterator contao_claude.tool
+
+    _instanceof:
+        Schachbulle\ContaoClaudeBundle\Tool\ToolInterface:
+            tags: ['contao_claude.tool']
+
+    Schachbulle\ContaoClaudeBundle\:
+        resource: '../../'
+        exclude:
+            - '../../ContaoClaudeBundle.php'
+            - '../../ContaoManager/'
+            - '../../DependencyInjection/'
+            - '../../Resources/'
+            - '../../Mcp/HttpBridge.php'
+            - '../../Security/AuthenticatedClient.php'
+            - '../../Security/LoginFailedException.php'
+
+    # Den Dienst gibt es erst ab Contao 5; unter 4.13 bleibt das Argument null
+    Schachbulle\ContaoClaudeBundle\Data\ContentUrls:
+        arguments:
+            $contentUrlGenerator: '@?contao.routing.content_url_generator'
+
+    # Controller müssen öffentlich sein, damit der Router sie abrufen kann
+    Schachbulle\ContaoClaudeBundle\Controller\McpController:
+        public: true
+        tags: ['controller.service_arguments']

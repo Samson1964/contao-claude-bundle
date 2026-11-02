@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Claude-Bundle: Contao als MCP-Server für Claude — lauffähig unter
+ * Contao 4.13 und Contao 5.7.
+ *
+ * @license LGPL-3.0-or-later
+ */
+
+$GLOBALS['TL_LANG']['tl_claude_settings']['server_legend'] = 'Server';
+$GLOBALS['TL_LANG']['tl_claude_settings']['instructions_legend'] = 'Hausregeln';
+$GLOBALS['TL_LANG']['tl_claude_settings']['access_legend'] = 'Zugriff';
+$GLOBALS['TL_LANG']['tl_claude_settings']['test_legend'] = 'Testschlüssel (Ausbaustufe 1)';
+
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeMcpEnabled'] = array('MCP-Server eingeschaltet', 'Ohne Haken antwortet /mcp allen Clients mit „503 Service Unavailable“ (Notschalter).');
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeInstructions'] = array('Hausregeln für Claude', 'Wird Claude beim Verbindungsaufbau als Anweisung mitgegeben, etwa „E-Mail-Adressen immer als {{email::adresse}}“. Eine Regel je Zeile.');
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeBlockedTables'] = array('Zusätzlich gesperrte Tabellen', 'Durch Komma getrennt, z. B. „tl_foo, tl_bar_*“. Ein Stern am Ende sperrt alle Tabellen mit diesem Anfang. Benutzer, Mitglieder, Einstellungen, Versionen, Protokolle und Formular-Einsendungen sind immer gesperrt.');
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeTestUser'] = array('Backend-Benutzer des Testschlüssels', 'Mit dessen Rechten arbeitet Claude, wenn es sich mit dem Testschlüssel anmeldet. Leer lassen schaltet den Testschlüssel ab.');
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeTestTokenNew'] = array('Neuen Testschlüssel erzeugen', 'Beim Speichern entsteht ein neuer Schlüssel; der bisherige wird ungültig. Der Schlüssel wird nur ein einziges Mal angezeigt.');
+
+$GLOBALS['TL_LANG']['tl_claude_settings']['testTokenCreated'] = 'Neuer Testschlüssel (nur jetzt sichtbar, bitte sofort kopieren): %s';
+$GLOBALS['TL_LANG']['tl_claude_settings']['testTokenStatus'] = 'Ein Testschlüssel ist gesetzt (erzeugt am %s).';
+$GLOBALS['TL_LANG']['tl_claude_settings']['testTokenMissing'] = 'Es gibt noch keinen Testschlüssel.';
+$GLOBALS['TL_LANG']['tl_claude_settings']['endpoint'] = 'Adresse des MCP-Endpunkts: %s';
+$GLOBALS['TL_LANG']['tl_claude_settings']['adminOnly'] = 'Die Einstellungen des MCP-Servers sind Administratoren vorbehalten.';
+$GLOBALS['TL_LANG']['tl_claude_settings']['userAdmin'] = 'Administrator';
+$GLOBALS['TL_LANG']['tl_claude_settings']['userDisabled'] = 'deaktiviert';
