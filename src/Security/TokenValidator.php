@@ -11,23 +11,26 @@ declare(strict_types=1);
 
 namespace Schachbulle\ContaoClaudeBundle\Security;
 
+use Schachbulle\ContaoClaudeBundle\OAuth\AuthorizationServer;
 use Schachbulle\ContaoClaudeBundle\Settings\Settings;
 
 /**
  * Prüft den Bearer-Schlüssel einer Anfrage an /mcp.
  *
- * Ausbaustufe 1 kennt nur den Testschlüssel aus den Einstellungen; er trägt
- * ausschließlich Leserechte. Mit der Anmeldung über OAuth (Stufe 2) kommen
- * die Zugriffsschlüssel aus tl_claude_token hinzu – dieselbe Schnittstelle,
- * nur eine zweite Quelle.
+ * Zwei Quellen: der Testschlüssel aus den Einstellungen (Ausbaustufe 1,
+ * nur Leserechte, für Claude Code mit festem Header und den MCP Inspector)
+ * und die Zugriffsschlüssel aus der OAuth-Anmeldung (tl_claude_token).
  */
 class TokenValidator
 {
 	/**
-	 * @param Settings $settings Liefert Hash und Benutzer des Testschlüssels
+	 * @param Settings            $settings            Liefert Hash und Benutzer des Testschlüssels
+	 * @param AuthorizationServer $authorizationServer Prüft die OAuth-Zugriffsschlüssel
 	 */
-	public function __construct(private readonly Settings $settings)
-	{
+	public function __construct(
+		private readonly Settings $settings,
+		private readonly AuthorizationServer $authorizationServer,
+	) {
 	}
 
 	/**
@@ -52,28 +55,30 @@ class TokenValidator
 	/**
 	 * Prüft einen Schlüssel.
 	 *
-	 * Der Vergleich läuft über hash_equals() auf den Hashes, damit die
-	 * Antwortzeit nichts über übereinstimmende Anfangszeichen verrät. Ohne
-	 * gewählten Testbenutzer gilt der Testschlüssel als abgeschaltet.
+	 * Zuerst gegen den Testschlüssel, dann gegen die OAuth-Verbindungen.
+	 * Der Vergleich mit dem Testschlüssel läuft über hash_equals() auf den
+	 * Hashes, damit die Antwortzeit nichts über übereinstimmende
+	 * Anfangszeichen verrät; OAuth-Schlüssel werden über ihren Hash gesucht.
+	 * Ohne gewählten Testbenutzer gilt der Testschlüssel als abgeschaltet.
 	 *
 	 * @param string $token Der Schlüssel aus dem Header
 	 *
 	 * @return AuthenticatedClient|null Der zugehörige Zugang, oder null, wenn
-	 *                                  der Schlüssel unbekannt oder abgeschaltet ist
+	 *                                  der Schlüssel unbekannt, abgelaufen oder abgeschaltet ist
 	 */
 	public function validate(string $token): ?AuthenticatedClient
 	{
+		if ('' === $token) {
+			return null;
+		}
+
 		$hash = $this->settings->getTestTokenHash();
 		$userId = $this->settings->getTestUserId();
 
-		if (null === $hash || $userId < 1 || '' === $token) {
-			return null;
+		if (null !== $hash && $userId > 0 && hash_equals($hash, Settings::hashToken($token))) {
+			return new AuthenticatedClient($userId, array(AuthenticatedClient::SCOPE_READ), 'Testschlüssel');
 		}
 
-		if (!hash_equals($hash, Settings::hashToken($token))) {
-			return null;
-		}
-
-		return new AuthenticatedClient($userId, array(AuthenticatedClient::SCOPE_READ), 'Testschlüssel');
+		return $this->authorizationServer->validateAccessToken($token, time());
 	}
 }

@@ -87,6 +87,7 @@ class BackendUserLogin
 			throw new LoginFailedException('Der Backend-Benutzer zum Schlüssel ist zurzeit nicht freigeschaltet.');
 		}
 
+		// Die Spalte gibt es nur in 4.13; unter Contao 5 liefert die magische Eigenschaft null
 		if ((int) $user->locked > $now) {
 			throw new LoginFailedException('Der Backend-Benutzer zum Schlüssel ist nach Fehlversuchen vorübergehend gesperrt.');
 		}

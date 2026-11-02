@@ -9,14 +9,22 @@ declare(strict_types=1);
  * @license LGPL-3.0-or-later
  */
 
+use Schachbulle\ContaoClaudeBundle\Backend\ConnectionsModule;
+
 /*
- * Backend-Modul „MCP-Server“ unter System.
+ * Backend-Module unter System.
  *
- * In der ersten Ausbaustufe enthält es nur die Einstellungen. Clients,
- * Verbindungen und Protokoll kommen mit der Anmeldung über OAuth als
- * weitere Tabellen hinzu.
+ * „MCP-Server“ (Einstellungen) ist Administratoren vorbehalten.
+ * „Claude-Verbindungen“ folgt den normalen Modulrechten: Wer Claude nutzen
+ * soll, bekommt das Modul über seine Benutzergruppe und sieht dort seine
+ * eigenen Verbindungen; Administratoren sehen alle.
  */
 $GLOBALS['BE_MOD']['system']['claude_mcp'] = array
 (
 	'tables' => array('tl_claude_settings'),
+);
+
+$GLOBALS['BE_MOD']['system']['claude_connections'] = array
+(
+	'callback' => ConnectionsModule::class,
 );

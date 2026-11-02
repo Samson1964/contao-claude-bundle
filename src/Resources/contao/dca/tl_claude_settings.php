@@ -34,7 +34,7 @@ $GLOBALS['TL_DCA']['tl_claude_settings'] = array
 
 	'palettes' => array
 	(
-		'default' => '{server_legend},claudeMcpEnabled;{instructions_legend},claudeInstructions;{access_legend},claudeBlockedTables;{test_legend},claudeTestUser,claudeTestTokenNew',
+		'default' => '{server_legend},claudeMcpEnabled;{connect_legend},claudeAllowedGroups,claudeAllowAdmins;{instructions_legend},claudeInstructions;{access_legend},claudeBlockedTables;{test_legend},claudeTestUser,claudeTestTokenNew',
 	),
 
 	'fields' => array
@@ -43,6 +43,17 @@ $GLOBALS['TL_DCA']['tl_claude_settings'] = array
 		(
 			'inputType' => 'checkbox',
 			'eval'      => array('tl_class' => 'w50'),
+		),
+		'claudeAllowedGroups' => array
+		(
+			'inputType'  => 'checkbox',
+			'foreignKey' => 'tl_user_group.name',
+			'eval'       => array('multiple' => true, 'tl_class' => 'clr'),
+		),
+		'claudeAllowAdmins' => array
+		(
+			'inputType' => 'checkbox',
+			'eval'      => array('tl_class' => 'clr'),
 		),
 		'claudeInstructions' => array
 		(

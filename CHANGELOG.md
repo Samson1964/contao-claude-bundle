@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 0.2.0 (2026-11-02)
+
+* Add: Anmeldung über OAuth 2.1 mit dem eigenen Backend-Zugang, für claude.ai, die Claude-Apps und Claude Code: Metadaten nach RFC 9728 und RFC 8414, Bestätigungsseite hinter dem Backend-Login, Code-Tausch mit PKCE (S256), Erneuerung mit Rotation, Widerruf nach RFC 7009
+* Add: Zugelassen sind nur die Claude-Clients über ihre Client ID Metadata Documents bei claude.ai (Positivliste, keine Registrierung nötig)
+* Add: Einstellungen „Erlaubte Benutzergruppen“ und „Administratoren dürfen sich verbinden“; die Regeln gelten bei jeder Anfrage
+* Add: Backend-Modul System → Claude-Verbindungen zum Ansehen und Widerrufen der Verbindungen
+* Add: Tabelle `tl_claude_token` (nur Hashes der Schlüssel) und täglicher Cronjob zum Aufräumen
+* Change: `/mcp` antwortet ohne Schlüssel mit `WWW-Authenticate: Bearer resource_metadata="…", scope="contao:read"`, damit Claude die Anmeldung startet
+
 ## Version 0.1.0 (2026-11-02)
 
 * Add: MCP-Endpunkt `/mcp` (Streamable HTTP) auf Basis des offiziellen PHP-SDK `mcp/sdk` 0.9, beide Protokollfassungen (2025-11-25 mit Handschlag, 2026-07-28 zustandslos)

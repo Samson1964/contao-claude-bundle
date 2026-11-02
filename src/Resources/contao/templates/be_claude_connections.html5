@@ -1,0 +1,53 @@
+<?php
+
+use Contao\Config;
+use Contao\Date;
+use Contao\StringUtil;
+
+/*
+ * Liste der Claude-Verbindungen (Backend\ConnectionsModule).
+ *
+ * Schlichtes Contao-Backend-Markup (tl_listing), damit die Liste in 4.13 und
+ * 5.7 ohne eigenes Stylesheet passend aussieht.
+ */
+$t = $GLOBALS['TL_LANG']['MSC']['claude_connections'];
+$datim = Config::get('datimFormat');
+?>
+<?= $this->messages ?>
+<div class="tl_listing_container list_view">
+  <?php if (empty($this->rows)): ?>
+    <p class="tl_empty"><?= $t['empty'] ?></p>
+  <?php else: ?>
+    <table class="tl_listing showColumns">
+      <tr>
+        <?php if ($this->showUser): ?><th class="tl_folder_tlist"><?= $t['user'] ?></th><?php endif; ?>
+        <th class="tl_folder_tlist"><?= $t['client'] ?></th>
+        <th class="tl_folder_tlist"><?= $t['created'] ?></th>
+        <th class="tl_folder_tlist"><?= $t['lastUsed'] ?></th>
+        <th class="tl_folder_tlist"><?= $t['expires'] ?></th>
+        <th class="tl_folder_tlist"><?= $t['status'] ?></th>
+        <th class="tl_folder_tlist tl_right_nowrap"></th>
+      </tr>
+      <?php foreach ($this->rows as $row): ?>
+        <tr class="hover-row">
+          <?php if ($this->showUser): ?><td class="tl_file_list"><?= StringUtil::specialchars($row['user']) ?></td><?php endif; ?>
+          <td class="tl_file_list"><?= StringUtil::specialchars($row['client']) ?> <span class="tl_gray">(<?= StringUtil::specialchars($row['scope']) ?>)</span></td>
+          <td class="tl_file_list"><?= Date::parse($datim, $row['created']) ?></td>
+          <td class="tl_file_list"><?= $row['lastUsed'] ? Date::parse($datim, $row['lastUsed']) : '–' ?></td>
+          <td class="tl_file_list"><?= 'active' === $row['status'] ? Date::parse($datim, $row['expires']) : '–' ?></td>
+          <td class="tl_file_list"><?= $t['status_'.$row['status']] ?></td>
+          <td class="tl_file_list tl_right_nowrap">
+            <?php if ('active' === $row['status']): ?>
+              <form method="post" onsubmit="return confirm('<?= StringUtil::specialchars($t['confirm']) ?>')">
+                <input type="hidden" name="FORM_SUBMIT" value="claude_connections">
+                <input type="hidden" name="REQUEST_TOKEN" value="<?= StringUtil::specialchars($this->requestToken) ?>">
+                <input type="hidden" name="grant" value="<?= (int) $row['id'] ?>">
+                <button type="submit" class="tl_submit"><?= $t['revoke'] ?></button>
+              </form>
+            <?php endif; ?>
+          </td>
+        </tr>
+      <?php endforeach; ?>
+    </table>
+  <?php endif; ?>
+</div>

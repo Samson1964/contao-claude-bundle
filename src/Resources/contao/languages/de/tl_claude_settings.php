@@ -14,7 +14,10 @@ $GLOBALS['TL_LANG']['tl_claude_settings']['instructions_legend'] = 'Hausregeln';
 $GLOBALS['TL_LANG']['tl_claude_settings']['access_legend'] = 'Zugriff';
 $GLOBALS['TL_LANG']['tl_claude_settings']['test_legend'] = 'Testschlüssel (Ausbaustufe 1)';
 
-$GLOBALS['TL_LANG']['tl_claude_settings']['claudeMcpEnabled'] = array('MCP-Server eingeschaltet', 'Ohne Haken antwortet /mcp allen Clients mit „503 Service Unavailable“ (Notschalter).');
+$GLOBALS['TL_LANG']['tl_claude_settings']['connect_legend'] = 'Wer darf Claude verbinden';
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeAllowedGroups'] = array('Erlaubte Benutzergruppen', 'Nur Mitglieder dieser Gruppen dürfen Claude über die Anmeldung mit ihrem Backend-Zugang verbinden. Ohne Auswahl dürfen alle. Claude arbeitet immer mit den Rechten des jeweiligen Benutzers.');
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeAllowAdmins'] = array('Administratoren dürfen sich verbinden', 'Ohne Haken weist die Anmeldung Administrator-Zugänge ab. Empfohlen ist ein eigener Zugang mit eingeschränkter Gruppe.');
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeMcpEnabled'] =array('MCP-Server eingeschaltet', 'Ohne Haken antwortet /mcp allen Clients mit „503 Service Unavailable“ (Notschalter).');
 $GLOBALS['TL_LANG']['tl_claude_settings']['claudeInstructions'] = array('Hausregeln für Claude', 'Wird Claude beim Verbindungsaufbau als Anweisung mitgegeben, etwa „E-Mail-Adressen immer als {{email::adresse}}“. Eine Regel je Zeile.');
 $GLOBALS['TL_LANG']['tl_claude_settings']['claudeBlockedTables'] = array('Zusätzlich gesperrte Tabellen', 'Durch Komma getrennt, z. B. „tl_foo, tl_bar_*“. Ein Stern am Ende sperrt alle Tabellen mit diesem Anfang. Benutzer, Mitglieder, Einstellungen, Versionen, Protokolle und Formular-Einsendungen sind immer gesperrt.');
 $GLOBALS['TL_LANG']['tl_claude_settings']['claudeTestUser'] = array('Backend-Benutzer des Testschlüssels', 'Mit dessen Rechten arbeitet Claude, wenn es sich mit dem Testschlüssel anmeldet. Leer lassen schaltet den Testschlüssel ab.');

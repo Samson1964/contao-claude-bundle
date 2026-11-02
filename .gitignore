@@ -12,6 +12,7 @@
 /BERICHT.md
 /pruefstand/*.local.md
 /pruefstand/*.local.json
+/pruefstand/*.local.txt
 
 # Spezifikation und Umsetzungsplan, nur lokal
 /docs/superpowers/

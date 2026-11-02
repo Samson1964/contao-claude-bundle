@@ -1,8 +1,10 @@
 # Alle Klassen unter src/ werden automatisch als Dienste registriert. Die
 # Rückrufe der Einstellungsmaske greifen über ihre #[AsCallback]-Attribute,
-# die Werkzeuge über die Schnittstelle ToolInterface (Tag contao_claude.tool).
-# Ausgenommen sind die Klassen, die Symfony bzw. der Contao Manager selbst
-# laden, die Ressourcen und die reinen Wertobjekte.
+# die Werkzeuge über die Schnittstelle ToolInterface (Tag contao_claude.tool),
+# die Bereinigung über #[AsCronJob]. Ausgenommen sind die Klassen, die
+# Symfony bzw. der Contao Manager selbst laden, die Ressourcen, das
+# klassische Backend-Modul (erzeugt Contao mit „new“) und die reinen
+# Wertobjekte und Hilfsklassen ohne Zustand.
 services:
     _defaults:
         autowire: true
@@ -27,7 +29,13 @@ services:
             - '../../ContaoManager/'
             - '../../DependencyInjection/'
             - '../../Resources/'
+            - '../../Backend/ConnectionsModule.php'
             - '../../Mcp/HttpBridge.php'
+            - '../../OAuth/OAuthClient.php'
+            - '../../OAuth/OAuthException.php'
+            - '../../OAuth/Pkce.php'
+            - '../../OAuth/RedirectUriMatcher.php'
+            - '../../OAuth/Scopes.php'
             - '../../Security/AuthenticatedClient.php'
             - '../../Security/LoginFailedException.php'
 
@@ -36,7 +44,33 @@ services:
         arguments:
             $contentUrlGenerator: '@?contao.routing.content_url_generator'
 
+    # http_client registriert Contao nicht in jeder Fassung; ohne ihn baut
+    # die Klasse sich einen eigenen Client
+    Schachbulle\ContaoClaudeBundle\OAuth\ClientRegistry:
+        arguments:
+            $cache: '@cache.app'
+            $httpClient: '@?http_client'
+
+    # Öffentlich, weil das klassische Backend-Modul der Verbindungen ihn über
+    # System::getContainer() holt
+    Schachbulle\ContaoClaudeBundle\OAuth\GrantRepository:
+        public: true
+
     # Controller müssen öffentlich sein, damit der Router sie abrufen kann
     Schachbulle\ContaoClaudeBundle\Controller\McpController:
         public: true
         tags: ['controller.service_arguments']
+
+    Schachbulle\ContaoClaudeBundle\Controller\OAuthMetadataController:
+        public: true
+        tags: ['controller.service_arguments']
+
+    Schachbulle\ContaoClaudeBundle\Controller\TokenController:
+        public: true
+        tags: ['controller.service_arguments']
+
+    Schachbulle\ContaoClaudeBundle\Controller\AuthorizeController:
+        public: true
+        tags: ['controller.service_arguments']
+        arguments:
+            $csrf: '@contao.csrf.token_manager'

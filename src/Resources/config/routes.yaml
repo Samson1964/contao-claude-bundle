@@ -13,3 +13,52 @@ claude_mcp:
         _controller: Schachbulle\ContaoClaudeBundle\Controller\McpController
         _token_check: false
     methods: [GET, POST, DELETE, OPTIONS]
+
+# OAuth: Metadaten der Ressource (RFC 9728). Clients versuchen zuerst die
+# Form mit angehängtem Pfad der Ressource, dann die ohne.
+claude_oauth_resource_metadata_mcp:
+    path: /.well-known/oauth-protected-resource/mcp
+    defaults:
+        _controller: Schachbulle\ContaoClaudeBundle\Controller\OAuthMetadataController::protectedResource
+    methods: [GET, OPTIONS]
+
+claude_oauth_resource_metadata:
+    path: /.well-known/oauth-protected-resource
+    defaults:
+        _controller: Schachbulle\ContaoClaudeBundle\Controller\OAuthMetadataController::protectedResource
+    methods: [GET, OPTIONS]
+
+# OAuth: Metadaten des Autorisierungsservers (RFC 8414)
+claude_oauth_server_metadata:
+    path: /.well-known/oauth-authorization-server
+    defaults:
+        _controller: Schachbulle\ContaoClaudeBundle\Controller\OAuthMetadataController::authorizationServer
+    methods: [GET, OPTIONS]
+
+# OAuth: Bestätigungsseite hinter der Backend-Firewall. Ohne Backend-Sitzung
+# leitet Contao zur Anmeldung um und danach hierher zurück. POST prüft
+# Contao über das Request-Token; _store_referrer: false hält die Seite aus
+# den Rücksprungadressen des Backends (Contao 4.13).
+claude_oauth_authorize:
+    path: '%contao.backend.route_prefix%/mcp/authorize'
+    defaults:
+        _controller: Schachbulle\ContaoClaudeBundle\Controller\AuthorizeController
+        _scope: backend
+        _store_referrer: false
+    methods: [GET, POST]
+
+# OAuth: Code-Tausch und Erneuerung, Widerruf. Formulardaten ohne
+# Request-Token, außerhalb jeder Firewall.
+claude_oauth_token:
+    path: /mcp/token
+    defaults:
+        _controller: Schachbulle\ContaoClaudeBundle\Controller\TokenController::token
+        _token_check: false
+    methods: [POST, OPTIONS]
+
+claude_oauth_revoke:
+    path: /mcp/revoke
+    defaults:
+        _controller: Schachbulle\ContaoClaudeBundle\Controller\TokenController::revoke
+        _token_check: false
+    methods: [POST, OPTIONS]

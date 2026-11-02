@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Schachbulle\ContaoClaudeBundle\Tests\Security;
 
 use PHPUnit\Framework\TestCase;
+use Schachbulle\ContaoClaudeBundle\OAuth\AuthorizationServer;
 use Schachbulle\ContaoClaudeBundle\Security\AuthenticatedClient;
 use Schachbulle\ContaoClaudeBundle\Security\TokenValidator;
 use Schachbulle\ContaoClaudeBundle\Settings\Settings;
@@ -73,7 +74,19 @@ class TokenValidatorTest extends TestCase
 		$settings->method('getTestTokenHash')->willReturn(null);
 		$settings->method('getTestUserId')->willReturn(42);
 
-		$this->assertNull((new TokenValidator($settings))->validate('geheim'));
+		$this->assertNull((new TokenValidator($settings, $this->oauth()))->validate('geheim'));
+	}
+
+	/**
+	 * Ist es nicht der Testschlüssel, entscheidet der OAuth-Server.
+	 */
+	public function testFallsBackToOAuth(): void
+	{
+		$client = $this->validator('geheim', 42)->validate('oauth-schluessel');
+
+		$this->assertNotNull($client);
+		$this->assertTrue($client->isOAuth());
+		$this->assertSame('Claude Code', $client->clientName);
 	}
 
 	/**
@@ -90,6 +103,19 @@ class TokenValidatorTest extends TestCase
 		$settings->method('getTestTokenHash')->willReturn(Settings::hashToken($token));
 		$settings->method('getTestUserId')->willReturn($userId);
 
-		return new TokenValidator($settings);
+		return new TokenValidator($settings, $this->oauth());
+	}
+
+	/**
+	 * Baut einen OAuth-Server, der nur „oauth-schluessel“ kennt.
+	 *
+	 * @return AuthorizationServer Die Attrappe
+	 */
+	private function oauth(): AuthorizationServer
+	{
+		$server = $this->createMock(AuthorizationServer::class);
+		$server->method('validateAccessToken')->willReturnCallback(static fn (string $token): ?AuthenticatedClient => 'oauth-schluessel' === $token ? new AuthenticatedClient(7, array(AuthenticatedClient::SCOPE_READ), 'Claude Code', 3) : null);
+
+		return $server;
 	}
 }

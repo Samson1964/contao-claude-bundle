@@ -14,7 +14,10 @@ $GLOBALS['TL_LANG']['tl_claude_settings']['instructions_legend'] = 'House rules'
 $GLOBALS['TL_LANG']['tl_claude_settings']['access_legend'] = 'Access';
 $GLOBALS['TL_LANG']['tl_claude_settings']['test_legend'] = 'Test key (stage 1)';
 
-$GLOBALS['TL_LANG']['tl_claude_settings']['claudeMcpEnabled'] = array('MCP server enabled', 'Without the checkmark, /mcp answers every client with "503 Service Unavailable" (kill switch).');
+$GLOBALS['TL_LANG']['tl_claude_settings']['connect_legend'] = 'Who may connect Claude';
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeAllowedGroups'] = array('Allowed user groups', 'Only members of these groups may connect Claude by signing in with their back end account. Without a selection everybody may. Claude always works with the user\'s own permissions.');
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeAllowAdmins'] = array('Administrators may connect', 'Without the checkmark, sign-in rejects administrator accounts. A separate account with a restricted group is recommended.');
+$GLOBALS['TL_LANG']['tl_claude_settings']['claudeMcpEnabled'] =array('MCP server enabled', 'Without the checkmark, /mcp answers every client with "503 Service Unavailable" (kill switch).');
 $GLOBALS['TL_LANG']['tl_claude_settings']['claudeInstructions'] = array('House rules for Claude', 'Passed to Claude as instructions when it connects. One rule per line.');
 $GLOBALS['TL_LANG']['tl_claude_settings']['claudeBlockedTables'] = array('Additionally blocked tables', 'Comma-separated, e.g. "tl_foo, tl_bar_*". A trailing asterisk blocks all tables with that prefix. Users, members, settings, versions, logs and form submissions are always blocked.');
 $GLOBALS['TL_LANG']['tl_claude_settings']['claudeTestUser'] = array('Back end user of the test key', 'Claude works with this user\'s permissions when it signs in with the test key. Leave empty to disable the test key.');

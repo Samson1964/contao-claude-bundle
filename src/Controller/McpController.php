@@ -20,7 +20,10 @@ use Psr\Log\LoggerInterface;
 use Schachbulle\ContaoClaudeBundle\Mcp\CallContext;
 use Schachbulle\ContaoClaudeBundle\Mcp\HttpBridge;
 use Schachbulle\ContaoClaudeBundle\Mcp\ServerFactory;
+use Schachbulle\ContaoClaudeBundle\OAuth\Endpoints;
+use Schachbulle\ContaoClaudeBundle\OAuth\Scopes;
 use Schachbulle\ContaoClaudeBundle\Security\BackendUserLogin;
+use Schachbulle\ContaoClaudeBundle\Security\ConnectionPolicy;
 use Schachbulle\ContaoClaudeBundle\Security\LoginFailedException;
 use Schachbulle\ContaoClaudeBundle\Security\TokenValidator;
 use Schachbulle\ContaoClaudeBundle\Settings\Settings;
@@ -49,6 +52,8 @@ class McpController
 	 * @param CallContext      $context        Nimmt den Zugang für die Werkzeuge auf
 	 * @param ServerFactory    $serverFactory  Baut den MCP-Server
 	 * @param LoggerInterface  $logger         Für unerwartete Fehler
+	 * @param Endpoints        $endpoints      Adresse der Metadaten für die 401-Antwort
+	 * @param ConnectionPolicy $policy         Wer sich über OAuth verbinden darf
 	 */
 	public function __construct(
 		private readonly ContaoFramework $framework,
@@ -58,6 +63,8 @@ class McpController
 		private readonly CallContext $context,
 		private readonly ServerFactory $serverFactory,
 		private readonly LoggerInterface $logger,
+		private readonly Endpoints $endpoints,
+		private readonly ConnectionPolicy $policy,
 	) {
 	}
 
@@ -102,6 +109,14 @@ class McpController
 
 		if (null === $client) {
 			return $this->unauthorized('Der Schlüssel ist ungültig oder abgeschaltet.', 'invalid_token');
+		}
+
+		// Eine geänderte Einstellung oder Gruppe wirkt sofort auch auf bestehende
+		// Verbindungen. 403 statt 401: Eine neue Anmeldung würde nichts ändern.
+		$denied = $client->isOAuth() ? $this->policy->check($client->userId) : null;
+
+		if (null !== $denied) {
+			return $this->error(Response::HTTP_FORBIDDEN, -32001, $denied);
 		}
 
 		try {
@@ -167,8 +182,10 @@ class McpController
 	/**
 	 * Antwortet mit 401 und dem Header WWW-Authenticate.
 	 *
-	 * Der Header bleibt ASCII (Header-Werte vertragen keine Umlaute); die
-	 * deutsche Meldung steht im JSON-Rumpf.
+	 * Der Header startet bei Claude die Anmeldung: resource_metadata zeigt auf
+	 * die Metadaten der Ressource (RFC 9728), scope nennt die Rechte, die
+	 * Claude anfragen soll. Er bleibt ASCII (Header-Werte vertragen keine
+	 * Umlaute); die deutsche Meldung steht im JSON-Rumpf.
 	 *
 	 * @param string      $message Meldung für den Client
 	 * @param string|null $error   Fehlercode nach RFC 6750, null ohne Schlüssel
@@ -183,6 +200,8 @@ class McpController
 		if (null !== $error) {
 			$header .= sprintf(', error="%s"', $error);
 		}
+
+		$header .= sprintf(', resource_metadata="%s", scope="%s"', $this->endpoints->getResourceMetadataUrl(), implode(' ', Scopes::GRANTABLE));
 
 		$response->headers->set('WWW-Authenticate', $header);
 

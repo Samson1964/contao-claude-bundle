@@ -13,6 +13,7 @@ namespace Schachbulle\ContaoClaudeBundle\Settings;
 
 use Contao\Config;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\StringUtil;
 
 /**
  * Liest die Einstellungen des MCP-Servers aus der localconfig.php.
@@ -30,6 +31,8 @@ class Settings
 	public const KEY_TEST_USER = 'claudeTestUser';
 	public const KEY_TEST_TOKEN_HASH = 'claudeTestTokenHash';
 	public const KEY_TEST_TOKEN_CREATED = 'claudeTestTokenCreated';
+	public const KEY_ALLOW_ADMINS = 'claudeAllowAdmins';
+	public const KEY_ALLOWED_GROUPS = 'claudeAllowedGroups';
 
 	/**
 	 * @param ContaoFramework $framework Liefert den Adapter auf Contao\Config;
@@ -109,6 +112,30 @@ class Settings
 	public function getTestTokenCreated(): int
 	{
 		return (int) $this->get(self::KEY_TEST_TOKEN_CREATED);
+	}
+
+	/**
+	 * Gibt an, ob sich Administratoren über OAuth verbinden dürfen.
+	 *
+	 * Ohne Einstellung nicht: Ein Administrator-Zugang gäbe Claude Zugriff
+	 * auf alles außerhalb der Sperrliste. Der Testschlüssel ist davon nicht
+	 * betroffen, ihn stellt ein Administrator ausdrücklich aus.
+	 *
+	 * @return bool true, wenn der Schalter in den Einstellungen gesetzt ist
+	 */
+	public function allowsAdmins(): bool
+	{
+		return (bool) $this->get(self::KEY_ALLOW_ADMINS);
+	}
+
+	/**
+	 * Liefert die Benutzergruppen, deren Mitglieder Claude verbinden dürfen.
+	 *
+	 * @return list<int> IDs aus tl_user_group; leer heißt „alle Gruppen“
+	 */
+	public function getAllowedGroups(): array
+	{
+		return array_values(array_filter(array_map('intval', StringUtil::deserialize($this->get(self::KEY_ALLOWED_GROUPS), true))));
 	}
 
 	/**

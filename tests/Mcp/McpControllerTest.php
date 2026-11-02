@@ -18,7 +18,11 @@ use Psr\Log\NullLogger;
 use Schachbulle\ContaoClaudeBundle\Controller\McpController;
 use Schachbulle\ContaoClaudeBundle\Mcp\CallContext;
 use Schachbulle\ContaoClaudeBundle\Mcp\ServerFactory;
+use Schachbulle\ContaoClaudeBundle\OAuth\AuthorizationServer;
+use Schachbulle\ContaoClaudeBundle\OAuth\Endpoints;
+use Schachbulle\ContaoClaudeBundle\Security\AuthenticatedClient;
 use Schachbulle\ContaoClaudeBundle\Security\BackendUserLogin;
+use Schachbulle\ContaoClaudeBundle\Security\ConnectionPolicy;
 use Schachbulle\ContaoClaudeBundle\Security\LoginFailedException;
 use Schachbulle\ContaoClaudeBundle\Security\Permissions;
 use Schachbulle\ContaoClaudeBundle\Security\TokenValidator;
@@ -81,15 +85,41 @@ class McpControllerTest extends TestCase
 	}
 
 	/**
-	 * Ohne Schlüssel kommt 401 mit WWW-Authenticate, aber ohne Fehlercode.
+	 * Ohne Schlüssel kommt 401 mit Verweis auf die Metadaten, ohne Fehlercode.
+	 *
+	 * Genau diese Antwort startet bei Claude die Anmeldung.
 	 */
 	public function testMissingToken(): void
 	{
 		$response = $this->send($this->initialize(), null);
 
 		$this->assertSame(Response::HTTP_UNAUTHORIZED, $response->getStatusCode());
-		$this->assertSame('Bearer realm="Contao MCP"', $response->headers->get('WWW-Authenticate'));
+		$this->assertSame('Bearer realm="Contao MCP", resource_metadata="https://example.org/.well-known/oauth-protected-resource/mcp", scope="contao:read"', $response->headers->get('WWW-Authenticate'));
 		$this->assertSame(-32001, json_decode((string) $response->getContent(), true)['error']['code']);
+	}
+
+	/**
+	 * Ein OAuth-Schlüssel wird angenommen.
+	 */
+	public function testOAuthToken(): void
+	{
+		$response = $this->send($this->initialize(), 'oauth-ok');
+
+		$this->assertSame(Response::HTTP_OK, $response->getStatusCode());
+	}
+
+	/**
+	 * Darf der Benutzer sich nicht mehr verbinden, kommt 403 statt 401.
+	 *
+	 * Eine neue Anmeldung änderte nichts; 403 ohne insufficient_scope zeigt
+	 * Claude als endgültigen Fehler an.
+	 */
+	public function testOAuthUserNoLongerAllowed(): void
+	{
+		$response = $this->send($this->initialize(), 'oauth-gesperrt');
+
+		$this->assertSame(Response::HTTP_FORBIDDEN, $response->getStatusCode());
+		$this->assertStringContainsString('Gesperrt.', (string) $response->getContent());
 	}
 
 	/**
@@ -268,6 +298,20 @@ class McpControllerTest extends TestCase
 		$context = new CallContext();
 		$factory = new ServerFactory(array(new EchoTool()), $settings, $permissions, $context, $requestStack, new NullLogger(), $this->sessionDirectory);
 
-		return new McpController($this->createMock(ContaoFramework::class), $settings, new TokenValidator($settings), $login, $context, $factory, new NullLogger());
+		// OAuth-Schlüssel „oauth-ok“ und „oauth-gesperrt“, alles andere unbekannt
+		$server = $this->createMock(AuthorizationServer::class);
+		$server->method('validateAccessToken')->willReturnCallback(static fn (string $token): ?AuthenticatedClient => match ($token) {
+			'oauth-ok' => new AuthenticatedClient(5, array(AuthenticatedClient::SCOPE_READ), 'Claude', 11),
+			'oauth-gesperrt' => new AuthenticatedClient(6, array(AuthenticatedClient::SCOPE_READ), 'Claude', 12),
+			default => null,
+		});
+
+		$endpoints = $this->createMock(Endpoints::class);
+		$endpoints->method('getResourceMetadataUrl')->willReturn('https://example.org/.well-known/oauth-protected-resource/mcp');
+
+		$policy = $this->createMock(ConnectionPolicy::class);
+		$policy->method('check')->willReturnCallback(static fn (int $userId): ?string => 6 === $userId ? 'Gesperrt.' : null);
+
+		return new McpController($this->createMock(ContaoFramework::class), $settings, new TokenValidator($settings, $server), $login, $context, $factory, new NullLogger(), $endpoints, $policy);
 	}
 }

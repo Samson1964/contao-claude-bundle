@@ -1,0 +1,82 @@
+{#
+ # Bestätigungsseite der OAuth-Anmeldung (AuthorizeController).
+ #
+ # Eigenständige Seite ohne Backend-Navigation, gestaltet wie Contaos
+ # Anmeldeseite, damit sie in 4.13 und 5.7 gleich aussieht. Drei Fälle:
+ # Bestätigung (client gesetzt), Ablehnung mit Begründung (error und
+ # cancelUrl) und reiner Fehler (nur error). Alle Ausgaben laufen durch
+ # Twigs automatische Maskierung.
+ #}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Claude verbinden{% if host %} · {{ host }}{% endif %}</title>
+<style>
+:root{--text:#222;--muted:#555;--bg:#eceff1;--card:#fff;--line:#dfe3e6;--accent:#f47c00;--accent-text:#fff;--warn-bg:#fff4e5;--warn-line:#f0b45a;--err-bg:#fdecea;--err-line:#e57373}
+@media (prefers-color-scheme:dark){:root{--text:#e8eaed;--muted:#aeb4ba;--bg:#16191c;--card:#22262a;--line:#373c41;--warn-bg:#3a2c16;--warn-line:#a87525;--err-bg:#3b1f1f;--err-line:#b85454}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:28px}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+dl{margin:0 0 20px;display:grid;grid-template-columns:auto 1fr;gap:6px 16px}
+dt{color:var(--muted)}
+dd{margin:0;word-break:break-word}
+ul{margin:0 0 20px;padding-left:20px}
+.note{border:1px solid var(--warn-line);background:var(--warn-bg);border-radius:6px;padding:10px 12px;margin:0 0 20px}
+.error{border:1px solid var(--err-line);background:var(--err-bg);border-radius:6px;padding:10px 12px;margin:0 0 20px}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+button,.button{font:inherit;padding:9px 18px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;text-decoration:none;display:inline-block}
+button.allow{background:var(--accent);border-color:var(--accent);color:var(--accent-text);font-weight:600}
+small{color:var(--muted);display:block;margin-top:16px}
+</style>
+</head>
+<body>
+<main>
+{% if client is defined %}
+  <h1>{{ client.name }} mit Contao verbinden</h1>
+  <p class="sub">{{ host }}</p>
+
+  <dl>
+    <dt>Anwendung</dt><dd>{{ client.name }} ({{ client.host }})</dd>
+    <dt>Rücksprung</dt><dd>{% if loopback %}dieser Rechner ({{ redirectHost }}){% else %}{{ redirectHost }}{% endif %}</dd>
+    <dt>Zugang</dt><dd>{{ user.name }} ({{ user.username }}){% if user.isAdmin %} – Administrator{% endif %}</dd>
+  </dl>
+
+  <p>{{ client.name }} darf dann mit deinen Rechten:</p>
+  <ul>
+    {% for scope in scopes %}<li>{{ scope }}</li>{% endfor %}
+  </ul>
+
+  {% if loopback %}
+    <p class="note">Der Rücksprung geht an ein Programm auf diesem Rechner. Bestätige nur, wenn du die Verbindung gerade selbst in Claude Code gestartet hast.</p>
+  {% endif %}
+  {% if user.isAdmin %}
+    <p class="note">Du bist als Administrator angemeldet. Claude kann dann alles lesen, was nicht für Claude gesperrt ist.</p>
+  {% endif %}
+
+  <form method="post" action="{{ action }}">
+    {% for name, value in params %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+    <input type="hidden" name="REQUEST_TOKEN" value="{{ requestToken }}">
+    <div class="actions">
+      <button type="submit" name="decision" value="allow" class="allow">Erlauben</button>
+      <button type="submit" name="decision" value="deny">Ablehnen</button>
+    </div>
+  </form>
+
+  <small>Die Verbindung gilt, bis du sie widerrufst oder sie 30 Tage nicht benutzt wird. Widerrufen kannst du sie im Backend unter System → Claude-Verbindungen.</small>
+{% else %}
+  <h1>Claude verbinden</h1>
+  {% if host %}<p class="sub">{{ host }}</p>{% endif %}
+  <p class="error">{{ error }}</p>
+  {% if user is defined %}<p>Angemeldet als {{ user.name }} ({{ user.username }}).</p>{% endif %}
+  {% if cancelUrl is defined %}
+    <div class="actions"><a class="button" href="{{ cancelUrl }}">Zurück zu Claude</a></div>
+  {% endif %}
+{% endif %}
+</main>
+</body>
+</html>

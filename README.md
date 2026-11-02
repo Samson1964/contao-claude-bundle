@@ -1,23 +1,29 @@
 # Claude-Bundle für Contao
 
-Stellt eine Contao-Installation als **MCP-Server** bereit. Claude (Claude Code,
-später auch claude.ai und die Claude-Apps) liest dann Seiten, Artikel,
-Inhaltselemente, Nachrichten, Dateien und beliebige Datensätze über eine
-Schnittstelle statt über die Backend-Oberfläche – immer mit den Rechten eines
-Backend-Benutzers, nie mit mehr.
+Stellt eine Contao-Installation als **MCP-Server** bereit. Claude – claude.ai im
+Browser, die Desktop- und Handy-App und Claude Code – liest dann Seiten,
+Artikel, Inhaltselemente, Nachrichten, Dateien und beliebige Datensätze über
+eine Schnittstelle statt über die Backend-Oberfläche. Jeder Redakteur meldet
+sich mit seinem eigenen Backend-Zugang an, und Claude bekommt genau dessen
+Rechte, nie mehr.
 
 Läuft mit **einem** Code-Stand unter Contao 4.13 und Contao 5.7.
 
-> **Stand: Ausbaustufe 1.** Nur lesende Werkzeuge, Anmeldung über einen
-> Testschlüssel. Anmeldung über OAuth (für claude.ai), schreibende Werkzeuge
-> und der Claude-Button im Backend folgen in den nächsten Stufen.
+> **Stand: Ausbaustufe 2.** Lesende Werkzeuge, Anmeldung über OAuth 2.1 mit
+> dem eigenen Backend-Zugang. Schreibende Werkzeuge und der Claude-Button im
+> Backend folgen in den nächsten Stufen.
 
 ## Voraussetzungen
 
 - Contao 4.13 oder 5.3 bis 5.7
 - PHP 8.1 oder neuer
-- Die Installation muss für die gewünschten Clients erreichbar sein
-  (Claude Code verbindet sich direkt vom eigenen Rechner).
+- Für claude.ai, Desktop und Handy: die Installation muss **öffentlich per
+  HTTPS** erreichbar sein, denn diese Anfragen kommen aus Anthropics
+  Rechenzentrum (`160.79.104.0/21`). Claude Code verbindet sich direkt vom
+  eigenen Rechner. Deshalb keine IP-Sperre auf Anthropic-Adressen.
+- Der Webserver muss `/.well-known/oauth-protected-resource…` und
+  `/.well-known/oauth-authorization-server` an Contao durchreichen. Manche
+  Konfigurationen sperren Pfade mit Punkt am Anfang.
 
 Das Bundle bringt das offizielle MCP-SDK für PHP (`mcp/sdk`) mit. Es beherrscht
 beide Protokollfassungen auf demselben Endpunkt: das Verfahren mit
@@ -31,7 +37,8 @@ beide Protokollfassungen auf demselben Endpunkt: das Verfahren mit
 composer require schachbulle/contao-claude-bundle
 ```
 
-Datenbankänderungen gibt es in dieser Stufe keine.
+Danach die Datenbank aktualisieren (Contao Manager bzw. Installtool, oder
+`contao:migrate`). Das Bundle legt die Tabelle `tl_claude_token` an.
 
 ## Einrichtung
 
@@ -39,31 +46,89 @@ Im Backend unter **System → MCP-Server** (nur für Administratoren):
 
 | Einstellung | Bedeutung |
 | --- | --- |
-| MCP-Server eingeschaltet | Notschalter. Ohne Haken antwortet `/mcp` mit 503. Nach der Installation ist er aus. |
+| MCP-Server eingeschaltet | Notschalter. Ohne Haken antworten `/mcp` und alle OAuth-Endpunkte mit 503. Nach der Installation ist er aus. |
+| Erlaubte Benutzergruppen | Nur Mitglieder dieser Gruppen dürfen Claude verbinden. Ohne Auswahl dürfen alle. |
+| Administratoren dürfen sich verbinden | Ohne Haken weist die Anmeldung Administrator-Zugänge ab. |
 | Hausregeln für Claude | Text, den Claude beim Verbindungsaufbau als Anweisung bekommt, etwa „E-Mail-Adressen immer als `{{email::adresse}}`“. |
 | Zusätzlich gesperrte Tabellen | Durch Komma getrennt; `tl_foo_*` sperrt alle Tabellen mit diesem Anfang. |
-| Backend-Benutzer des Testschlüssels | Mit dessen Rechten arbeitet Claude. Leer lassen schaltet den Testschlüssel ab. |
-| Neuen Testschlüssel erzeugen | Beim Speichern entsteht ein neuer Schlüssel; er wird **einmal** angezeigt und nur als SHA-256-Hash gespeichert. Der vorige wird ungültig. |
+| Testschlüssel | Ein fester Schlüssel für einen gewählten Benutzer, zum Ausprobieren mit Claude Code und dem MCP Inspector (siehe unten). |
 
 Die Maske zeigt oben die Adresse des Endpunkts, etwa `https://www.example.org/mcp`.
 
-**Empfehlung:** Für Claude einen eigenen Backend-Benutzer mit einer eingeschränkten
-Gruppe anlegen (etwa nur Artikel, Nachrichten und Dateien) statt eines Administrators.
+**Empfehlung:** Für Claude eine eigene Benutzergruppe mit eingeschränkten Rechten
+anlegen (etwa nur Artikel, Nachrichten und Dateien) und nur diese erlauben.
 
-### Anbindung in Claude Code
+## Claude verbinden
+
+### claude.ai, Desktop, Handy
+
+In Claude unter **Einstellungen → Connectors → Benutzerdefinierten Connector
+hinzufügen** die Adresse `https://www.example.org/mcp` eintragen. Eine Client-ID
+ist nicht nötig. Claude öffnet die Anmeldung von Contao. Wer noch nicht im
+Backend angemeldet ist, meldet sich dort an, auch mit Zwei-Faktor-Abfrage.
+Anschließend bestätigt er auf einer Seite, die Anwendung, Rücksprung, Zugang
+und Rechte nennt.
+
+### Claude Code
 
 ```bash
-claude mcp add --transport http contao https://www.example.org/mcp --header "Authorization: Bearer <Testschlüssel>"
+claude mcp add --transport http contao https://www.example.org/mcp
 ```
 
-### Prüfen mit dem MCP Inspector
+Danach in Claude Code `/mcp` aufrufen und die Anmeldung im Browser bestätigen.
+
+### Verbindungen verwalten
+
+Unter **System → Claude-Verbindungen** stehen die Verbindungen mit Anwendung,
+Zeitpunkten und Status; dort lassen sie sich widerrufen. Benutzer sehen ihre
+eigenen Verbindungen, Administratoren alle. Das Modul folgt den normalen
+Modulrechten, also der Gruppe der Claude-Nutzer das Modul freigeben.
+
+### Testschlüssel (ohne OAuth)
+
+Zum Ausprobieren ohne Anmeldung: In den Einstellungen einen Benutzer wählen und
+„Neuen Testschlüssel erzeugen“ anhaken. Der Schlüssel wird nach dem Speichern
+**einmal** angezeigt und nur als SHA-256-Hash gespeichert.
 
 ```bash
-npx @modelcontextprotocol/inspector
+claude mcp add --transport http contao-test https://www.example.org/mcp --header "Authorization: Bearer <Testschlüssel>"
 ```
 
+Prüfen mit dem MCP Inspector (`npx @modelcontextprotocol/inspector`):
 Transport „Streamable HTTP“, Adresse des Endpunkts, Header
 `Authorization: Bearer <Testschlüssel>`.
+
+## Anmeldung über OAuth 2.1
+
+Das Bundle bringt einen eigenen, schlanken Autorisierungsserver mit, ohne
+zusätzliche OAuth- oder JWT-Bibliothek.
+
+| Adresse | Zweck |
+| --- | --- |
+| `/mcp` | MCP-Endpunkt. Ohne Schlüssel `401` mit `WWW-Authenticate: Bearer resource_metadata="…", scope="contao:read"` |
+| `/.well-known/oauth-protected-resource/mcp` (auch ohne `/mcp`) | Metadaten der Ressource (RFC 9728) |
+| `/.well-known/oauth-authorization-server` | Metadaten des Autorisierungsservers (RFC 8414) |
+| `/contao/mcp/authorize` | Bestätigungsseite hinter dem Backend-Login |
+| `/mcp/token` | Code-Tausch (`authorization_code`) und Erneuerung (`refresh_token`) |
+| `/mcp/revoke` | Widerruf (RFC 7009) |
+
+- **Clients:** Zugelassen sind nur die Claude-Apps und Claude Code. Beide weisen
+  sich mit einem *Client ID Metadata Document* von Anthropic aus
+  (`https://claude.ai/oauth/mcp-oauth-client-metadata`,
+  `https://claude.ai/oauth/claude-code-client-metadata`). Andere Clients werden
+  abgewiesen; fremde Adressen ruft der Server nie ab.
+- **Rücksprung:** `https://claude.ai/api/mcp/auth_callback` exakt; für Claude
+  Code `http://localhost/callback` bzw. `http://127.0.0.1/callback` mit
+  beliebigem Port.
+- **PKCE** mit S256 ist Pflicht, ein Geheimnis gibt es nicht (öffentlicher Client).
+- **Schlüssel** sind zufällig (32 Byte) und liegen nur als SHA-256-Hash in der
+  Datenbank. Code 10 Minuten, Zugriffsschlüssel 1 Stunde, Erneuerungsschlüssel
+  30 Tage ab der letzten Erneuerung. Jede Erneuerung gibt beide Schlüssel neu
+  aus. Ein zweimal vorgelegter Code widerruft die Verbindung.
+- Jeder Schlüssel gilt nur für die Ressource (Domain), für die er ausgestellt
+  wurde.
+- Die Regeln, wer sich verbinden darf, gelten bei jeder Anfrage. Wer aus der
+  erlaubten Gruppe fällt, verliert den Zugang sofort.
 
 ## Werkzeuge
 
@@ -84,9 +149,14 @@ Alle Werkzeuge sind als lesend gekennzeichnet (`readOnlyHint`).
 | `record_history` | Versionen eines Datensatzes aus `tl_version`, auch den Inhalt einer Fassung |
 | `preview_url` | Öffentliche Adresse und Vorschauadresse von Seite, Artikel, Nachricht oder Termin |
 
-Die Ausgabe ist für Claude aufbereitet: Dateifelder als `{uuid, path}`,
-Datumsfelder als ISO 8601, Checkboxen als `true`/`false`, serialisierte Felder
-als Listen, Contaos Ersatzschreibweisen (`[nbsp]`, `[lt]` …) als echte Entities.
+Die Ausgabe ist für Claude aufbereitet:
+
+- Dateifelder als `{uuid, path}`
+- Datumsfelder als ISO 8601
+- Checkboxen als `true`/`false`
+- serialisierte Felder als Listen
+- Contaos Ersatzschreibweisen (`[nbsp]`, `[lt]` …) als echte Entities
+
 Volle Datensätze zeigen nur die Felder der Palette, die das Backend für den
 jeweiligen Typ zeigt.
 
@@ -105,10 +175,11 @@ Es gelten die Rechte des Backend-Benutzers und seiner Gruppen, wie im Backend:
   Felder außer Kennwörtern und Feldern mit `doNotShow` oder `hideInput`. Die
   Feldfreigaben einer Gruppe regeln nur das Bearbeiten; `dca_describe` meldet sie
   als `editable`.
-- **Sperrliste:** Benutzer, Gruppen, Mitglieder, Einstellungen, Versionen,
-  Wiederherstellung, Protokolle, Cronjobs, Newsletter-Empfänger,
-  Formular-Einsendungen (`tl_lead*`), Suchindex und die Tabellen dieses Bundles
-  sind immer gesperrt, auch für Administratoren.
+- **Sperrliste:** Immer gesperrt sind, auch für Administratoren:
+  - Benutzer, Gruppen und Mitglieder
+  - Einstellungen, Versionen, Wiederherstellung, Protokolle und Cronjobs
+  - Newsletter-Empfänger und Formular-Einsendungen (`tl_lead*`)
+  - der Suchindex und die Tabellen dieses Bundles
 
 Tabellen eigener Erweiterungen kennen nur Modulrecht und Sperrliste. Eigene
 Rechte solcher Erweiterungen (etwa „nur Archiv A“) prüft Contao in deren
@@ -119,10 +190,15 @@ Rechte solcher Erweiterungen (etwa „nur Archiv A“) prüft Contao in deren
 - Der Header `Authorization` muss PHP erreichen. Auf manchen
   Apache-Konfigurationen braucht es dafür in der `.htaccess`:
   `RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]`
-- Alle Antworten von `/mcp` tragen `Cache-Control: no-store, private`; der
-  Seitencache speichert sie nicht.
-- Protokollsitzungen des älteren Verfahrens liegen als Dateien unter
+- Alle Antworten von `/mcp` und den OAuth-Endpunkten tragen `Cache-Control:
+  no-store, private`; der Seitencache speichert sie nicht.
+- Die Metadatendokumente von Claude ruft der Server einmal am Tag von claude.ai
+  ab (ausgehendes HTTPS). Ist claude.ai nicht erreichbar, gelten die im Bundle
+  hinterlegten Rücksprungadressen.
+- Protokollsitzungen des älteren MCP-Verfahrens liegen als Dateien unter
   `var/claude/mcp-sessions` (nur Protokolldaten, keine Inhalte, 8 Stunden gültig).
+- Ein täglicher Cronjob räumt verfallene Codes und alte, widerrufene oder
+  abgelaufene Verbindungen ab.
 
 ## Entwicklung
 
@@ -134,9 +210,13 @@ Rechte solcher Erweiterungen (etwa „nur Archiv A“) prüft Contao in deren
 /c/xampp/php/php.exe vendor/bin/phpunit
 ```
 
-Prüfstand gegen eine Testinstallation in `pruefstand/` (Testschlüssel einrichten,
-Testdaten anlegen, Proben als MCP-Client, Gegenprobe mit dem SDK-Client); die
-Aufrufe stehen jeweils im Dateikopf.
+Prüfstand gegen eine Testinstallation in `pruefstand/`:
+
+- Testschlüssel einrichten und Testdaten anlegen
+- Proben als MCP-Client und Gegenprobe mit dem SDK-Client
+- die OAuth-Anmeldung wie Claude Code (`oauth-probe.php`)
+
+Die Aufrufe stehen jeweils im Dateikopf.
 
 ## Lizenz
 
