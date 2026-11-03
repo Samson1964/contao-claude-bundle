@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.4.0 (2026-11-03)
+
+* Add: Claude-Button in der Backend-Kopfzeile (Contao 4.13 und 5.7) und in der Frontend-Vorschau, nur für Benutzer, die Claude verbinden dürfen
+* Add: Eingabefeld „Was soll Claude tun?“; die Anfrage enthält Installation, Modul, Datensatz mit Namen und Elterndatensatz sowie die Adresse, kommt in die Zwischenablage und öffnet claude.ai/new
+* Add: Skript ohne MooTools und Stimulus, per Ereignis-Delegation auch nach Turbo-Seitenwechseln in Contao 5; Stil für helles und dunkles Backend
+
 ## Version 0.3.0 (2026-11-03)
 
 * Add: Schreibende Werkzeuge `content_create`, `content_update`, `news_create`, `news_update`, `record_save`, `record_restore`, `publish_toggle`, `record_delete`, `file_upload`, `file_meta_update`

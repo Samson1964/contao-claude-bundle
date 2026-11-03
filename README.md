@@ -9,9 +9,9 @@ Rechte, nie mehr.
 
 Läuft mit **einem** Code-Stand unter Contao 4.13 und Contao 5.7.
 
-> **Stand: Ausbaustufe 3.** Lesende und schreibende Werkzeuge, Anmeldung über
-> OAuth 2.1 mit dem eigenen Backend-Zugang, Protokoll aller Schreibvorgänge.
-> Der Claude-Button im Backend folgt in der nächsten Stufe.
+> **Stand: Ausbaustufe 4.** Lesende und schreibende Werkzeuge, Anmeldung über
+> OAuth 2.1 mit dem eigenen Backend-Zugang, Protokoll aller Schreibvorgänge und
+> ein Claude-Button in Backend und Frontend-Vorschau.
 
 ## Voraussetzungen
 
@@ -235,6 +235,37 @@ Scheitert ein Feld, bleibt der Datensatz, wie er war.
 ID, Feldnamen, Ergebnis. Inhalte nicht; die zeigen die Versionen. Wer nicht
 Administrator ist, sieht nur die eigenen Einträge. Einträge werden nach
 180 Tagen gelöscht.
+
+## Claude-Button
+
+Wer Claude verbinden darf (Server eingeschaltet, erlaubte Gruppe,
+Administratoren nur mit Schalter), sieht einen Knopf **Claude**:
+
+- im Backend in der Kopfzeile vor „Vorschau“,
+- im Frontend unten rechts, solange die Vorschau läuft (`preview.php` mit
+  angemeldetem Backend-Benutzer). Besucher sehen ihn nie.
+
+Ein Klick öffnet das Feld „Was soll Claude tun?“. Beim Abschicken (oder mit
+Strg+Enter) entsteht eine Anfrage aus dem Kontext und der Eingabe, etwa:
+
+```text
+Nutze den Contao-Konnektor der Installation www.example.org.
+Backend-Modul: Nachrichten (do=news)
+Wird gerade bearbeitet: tl_news 123 „Titel“ in tl_news_archive 3 „Aktuelles“
+Adresse: https://www.example.org/contao?do=news&table=tl_news&id=123&act=edit
+
+Schreib einen Teaser für diese Nachricht
+```
+
+Die Anfrage kommt in die Zwischenablage, und `claude.ai/new` öffnet sich in
+einem eigenen Fenster, vorausgefüllt über `?q=`. Diesen Parameter hat Anthropic
+nicht dokumentiert; übernimmt claude.ai ihn nicht, genügt Einfügen. Namen von
+Datensätzen stehen nur im Kontext, wenn der Benutzer sie auch über die
+Werkzeuge lesen dürfte. Das Request-Token der Backend-Adresse wird entfernt.
+
+Skript und Stil liegen unter `public/bundles/contaoclaude/`. Nach einem Update
+des Bundles legt Contao sie beim Cache-Leeren bzw. über
+`contao-console assets:install` neu ab.
 
 ## Rechte
 

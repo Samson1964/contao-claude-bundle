@@ -26,7 +26,10 @@ if ('' !== $root && '/' !== $path && is_file($root.$path)) {
 	return false;
 }
 
-$_SERVER['SCRIPT_NAME'] = '/index.php';
-$_SERVER['SCRIPT_FILENAME'] = $root.'/index.php';
+// Die Frontend-Vorschau läuft über einen eigenen Einstiegspunkt
+$script = str_starts_with($path, '/preview.php') && is_file($root.'/preview.php') ? '/preview.php' : '/index.php';
 
-require $root.'/index.php';
+$_SERVER['SCRIPT_NAME'] = $script;
+$_SERVER['SCRIPT_FILENAME'] = $root.$script;
+
+require $root.$script;

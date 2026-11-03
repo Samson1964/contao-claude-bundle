@@ -1,0 +1,142 @@
+/*
+ * Claude-Bundle: Claude-Button in Backend-Kopfzeile und Frontend-Vorschau.
+ *
+ * Farben über eigene Variablen mit Rückfall, damit der Stil im hellen und
+ * dunklen Backend von Contao 5 wie im Backend von Contao 4.13 und auf
+ * beliebigen Frontend-Seiten lesbar bleibt.
+ *
+ * @license LGPL-3.0-or-later
+ */
+
+:root {
+	--claude-accent: #c15f3c;
+	--claude-surface: #fff;
+	--claude-text: #222;
+	--claude-muted: #666;
+	--claude-border: #ccc;
+	--claude-shadow: 0 8px 30px rgba(0, 0, 0, .25);
+}
+
+html[data-color-scheme="dark"] {
+	--claude-surface: #23262d;
+	--claude-text: #e8e8e8;
+	--claude-muted: #a0a4ab;
+	--claude-border: #444851;
+}
+
+/* Symbol vor dem Text, ohne Bilddatei */
+.claude-button::before {
+	content: "✳";
+	display: inline-block;
+	margin-right: .35em;
+	color: var(--claude-accent);
+	font-weight: bold;
+}
+
+/* Frontend: schwebend unten rechts */
+.claude-button--floating {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	z-index: 2147483000;
+	padding: 10px 16px;
+	border-radius: 999px;
+	background: var(--claude-surface);
+	color: var(--claude-text);
+	box-shadow: var(--claude-shadow);
+	font: 600 15px/1.2 system-ui, sans-serif;
+	text-decoration: none;
+}
+
+.claude-button--floating:hover,
+.claude-button--floating:focus-visible {
+	outline: 2px solid var(--claude-accent);
+}
+
+.claude-dialog {
+	position: fixed;
+	inset: 0;
+	z-index: 2147483001;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	padding: 10vh 16px 16px;
+	background: rgba(0, 0, 0, .35);
+	font: 14px/1.45 system-ui, sans-serif;
+}
+
+.claude-dialog__box {
+	width: 100%;
+	max-width: 560px;
+	padding: 20px;
+	border-radius: 10px;
+	background: var(--claude-surface);
+	color: var(--claude-text);
+	box-shadow: var(--claude-shadow);
+}
+
+.claude-dialog__title {
+	margin: 0 0 12px;
+	font-size: 17px;
+}
+
+.claude-dialog__input {
+	box-sizing: border-box;
+	width: 100%;
+	padding: 8px 10px;
+	border: 1px solid var(--claude-border);
+	border-radius: 6px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	resize: vertical;
+}
+
+.claude-dialog__context {
+	margin: 10px 0;
+	color: var(--claude-muted);
+}
+
+.claude-dialog__context pre {
+	max-height: 160px;
+	overflow: auto;
+	margin: 6px 0 0;
+	white-space: pre-wrap;
+	word-break: break-word;
+	font-size: 12px;
+}
+
+.claude-dialog__actions {
+	display: flex;
+	gap: 8px;
+}
+
+.claude-dialog__actions button {
+	padding: 7px 14px;
+	border: 1px solid var(--claude-border);
+	border-radius: 6px;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+.claude-dialog__actions .claude-dialog__send {
+	border-color: var(--claude-accent);
+	background: var(--claude-accent);
+	color: #fff;
+}
+
+.claude-dialog__actions .claude-dialog__send:disabled {
+	opacity: .6;
+	cursor: default;
+}
+
+.claude-dialog__note {
+	margin: 10px 0 0;
+	color: var(--claude-muted);
+}
+
+.claude-dialog__note:empty {
+	display: none;
+}
