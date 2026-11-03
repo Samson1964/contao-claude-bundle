@@ -13,7 +13,6 @@ namespace Schachbulle\ContaoClaudeBundle\Tests\Tool;
 
 use PHPUnit\Framework\TestCase;
 use Schachbulle\ContaoClaudeBundle\Security\AuthenticatedClient;
-use Schachbulle\ContaoClaudeBundle\Tool\AbstractReadTool;
 use Schachbulle\ContaoClaudeBundle\Tool\AbstractWriteTool;
 use Schachbulle\ContaoClaudeBundle\Tool\ToolInterface;
 
@@ -44,9 +43,8 @@ class ToolContractTest extends TestCase
 	}
 
 	/**
-	 * Es gibt genau die zwölf lesenden Werkzeuge der Ausbaustufe 1, die zehn
-	 * schreibenden der Ausbaustufe 3 und die drei für Meisterlisten und
-	 * Adressen aus Ausbaustufe 5.
+	 * Es gibt genau die zwölf lesenden Werkzeuge der Ausbaustufe 1 und die
+	 * zehn schreibenden der Ausbaustufe 3.
 	 */
 	public function testAllToolsPresent(): void
 	{
@@ -58,7 +56,7 @@ class ToolContractTest extends TestCase
 
 		sort($names);
 
-		$this->assertSame(array('address_search', 'article_list', 'championslist_add', 'championslist_search', 'content_create', 'content_list', 'content_update', 'dca_describe', 'file_list', 'file_meta_update', 'file_upload', 'news_create', 'news_get', 'news_search', 'news_update', 'page_tree', 'preview_url', 'publish_toggle', 'record_delete', 'record_get', 'record_history', 'record_list', 'record_restore', 'record_save', 'site_info'), $names);
+		$this->assertSame(array('article_list', 'content_create', 'content_list', 'content_update', 'dca_describe', 'file_list', 'file_meta_update', 'file_upload', 'news_create', 'news_get', 'news_search', 'news_update', 'page_tree', 'preview_url', 'publish_toggle', 'record_delete', 'record_get', 'record_history', 'record_list', 'record_restore', 'record_save', 'site_info'), $names);
 	}
 
 	/**
@@ -124,10 +122,7 @@ class ToolContractTest extends TestCase
 			$this->assertTrue($annotations->readOnlyHint);
 			$this->assertFalse($annotations->destructiveHint);
 			$this->assertSame(AuthenticatedClient::SCOPE_READ, $tool->getRequiredScope());
-			// Werkzeuge für fremde Bundles prüfen ihre Tabellen und brauchen dafür die Datenbank
-			if (AbstractReadTool::class === (new \ReflectionMethod($tool, 'isAvailable'))->getDeclaringClass()->getName()) {
-				$this->assertTrue($tool->isAvailable());
-			}
+			$this->assertTrue($tool->isAvailable());
 		}
 	}
 

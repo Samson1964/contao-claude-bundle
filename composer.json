@@ -1,7 +1,7 @@
 {
     "name": "schachbulle/contao-claude-bundle",
     "type": "contao-bundle",
-    "description": "Stellt eine Contao-Installation als MCP-Server für Claude bereit: Seiten, Artikel, Nachrichten, Dateien und Datensätze lesen, immer mit den Rechten des eigenen Backend-Zugangs.",
+    "description": "Stellt eine Contao-Installation als MCP-Server für Claude bereit: Seiten, Artikel, Nachrichten, Dateien und Datensätze lesen und pflegen, immer mit den Rechten des eigenen Backend-Zugangs.",
     "keywords": [
         "contao",
         "claude",

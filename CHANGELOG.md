@@ -2,8 +2,7 @@
 
 ## Version 0.5.0 (2026-11-03)
 
-* Add: Werkzeuge `championslist_search` und `championslist_add` für schachbulle/contao-championslists-bundle, `address_search` für schachbulle/contao-adressen-bundle; sie erscheinen nur, wenn das Bundle installiert ist
-* Add: Meisterlisten folgen beim Lesen den freigegebenen Listen der Benutzergruppe (Feld „championslists“)
+* Add: Meisterlisten (schachbulle/contao-championslists-bundle) folgen beim Lesen den freigegebenen Listen der Benutzergruppe, wie im Backend
 * Change: IBAN und BIC werden in keiner Tabelle ausgegeben oder geschrieben
 
 ## Version 0.4.0 (2026-11-03)

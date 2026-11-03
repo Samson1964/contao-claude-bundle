@@ -9,10 +9,9 @@ Rechte, nie mehr.
 
 Läuft mit **einem** Code-Stand unter Contao 4.13 und Contao 5.7.
 
-> **Stand: Ausbaustufe 5.** Lesende und schreibende Werkzeuge, Anmeldung über
-> OAuth 2.1 mit dem eigenen Backend-Zugang, Protokoll aller Schreibvorgänge, ein
-> Claude-Button in Backend und Frontend-Vorschau und eigene Werkzeuge für
-> Meisterlisten und Adressen.
+> **Stand: Fassung 0.5.** Lesende und schreibende Werkzeuge, Anmeldung über
+> OAuth 2.1 mit dem eigenen Backend-Zugang, Protokoll aller Schreibvorgänge und
+> ein Claude-Button in Backend und Frontend-Vorschau.
 
 ## Voraussetzungen
 
@@ -67,7 +66,7 @@ Im Backend unter **System → MCP-Server** (nur für Administratoren):
 | Schreibende Werkzeuge freigeben | Claude darf anlegen und ändern, soweit der Backend-Zugang das darf. Ohne Haken bleibt die Installation lesend. |
 | Veröffentlichen erlauben | Schaltet `publish_toggle` frei. Ohne Haken bleibt Veröffentlichen Handarbeit im Backend. |
 | Löschen erlauben | Schaltet `record_delete` frei (wiederherstellbar über System → Wiederherstellen). |
-| Hausregeln für Claude | Text, den Claude beim Verbindungsaufbau als Anweisung bekommt, etwa „E-Mail-Adressen immer als `{{email::adresse}}`“. |
+| Hausregeln für Claude | Text, den Claude beim Verbindungsaufbau als Anweisung bekommt, etwa „E-Mail-Adressen immer als `{{email::adresse}}`“. Auch der Ort für Wissen über eigene Erweiterungen: welche Tabelle was enthält (etwa „Meisterlisten stehen in tl_championslists_items, ein Eintrag je Jahr“), damit Claude sie mit den allgemeinen Werkzeugen richtig nutzt. |
 | Zusätzlich gesperrte Tabellen | Durch Komma getrennt; `tl_foo_*` sperrt alle Tabellen mit diesem Anfang. |
 | Testschlüssel | Ein fester Schlüssel für einen gewählten Benutzer, zum Ausprobieren mit Claude Code und dem MCP Inspector (siehe unten). |
 
@@ -199,20 +198,6 @@ verbunden war, muss die Verbindung einmal trennen und neu verbinden.
 | `publish_toggle` | Veröffentlichen oder verstecken – nur mit Haken „Veröffentlichen erlauben“ |
 | `record_delete` | Löschen samt Kinddatensätzen, wiederherstellbar über System → Wiederherstellen – nur mit Haken „Löschen erlauben“ |
 
-### Für weitere schachbulle-Bundles
-
-Erscheinen nur, wenn das jeweilige Bundle installiert ist.
-
-| Werkzeug | Bundle | Tut |
-| --- | --- | --- |
-| `championslist_search` | `schachbulle/contao-championslists-bundle` | Meisterlisten auflisten; Einträge nach Liste, Jahr, Name, Verein oder Ort suchen |
-| `championslist_add` | `schachbulle/contao-championslists-bundle` | Neuen Eintrag (Jahr, Name, Ort …) in eine Liste schreiben, unveröffentlicht; braucht freigegebenes Schreiben |
-| `address_search` | `schachbulle/contao-adressen-bundle` | Adressen nach Name, Verein, Ort und Funktion suchen; Funktionen mit Namen. Ändern über `record_save` |
-
-Meisterlisten folgen den freigegebenen Listen der Benutzergruppe wie im Backend.
-Adressen zeigen, was der Backend-Zugang sieht; **IBAN und BIC** hält das Bundle
-in jeder Tabelle zurück und lässt sie auch nicht schreiben.
-
 **Gespeichert wird wie im Backend.** Die Werkzeuge nutzen Contaos eigenes
 `DC_Table` (Anlegen, Speichern, Löschen). Dadurch laufen dieselben Schritte wie
 beim Klick auf „Speichern“:
@@ -302,6 +287,10 @@ Es gelten die Rechte des Backend-Benutzers und seiner Gruppen, wie im Backend:
   gelten zusätzlich die **Tabellenrechte** (Anlegen, Bearbeiten, Löschen) und
   die erlaubten Elementtypen. Für Dateien die Rechte „Dateien hochladen“ bzw.
   „Dateien bearbeiten“ der Dateiverwaltung.
+- **Bankdaten:** Felder `iban` und `bic` gibt das Bundle in keiner Tabelle aus und
+  lässt sie nicht schreiben, auch für Administratoren.
+- **Meisterlisten** (`schachbulle/contao-championslists-bundle`): Wie im Backend
+  nur die Listen, die die Benutzergruppe freigibt.
 - **Sperrliste:** Immer gesperrt sind, auch für Administratoren:
   - Benutzer, Gruppen und Mitglieder
   - Einstellungen, Versionen, Wiederherstellung, Protokolle und Cronjobs
