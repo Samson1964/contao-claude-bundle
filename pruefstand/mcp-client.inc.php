@@ -51,6 +51,18 @@ final class ProbeClient
 	}
 
 	/**
+	 * Liefert die Namen der angebotenen Werkzeuge.
+	 *
+	 * @return list<string> Werkzeugnamen aus tools/list
+	 */
+	public function tools(): array
+	{
+		[$body] = $this->post(array('jsonrpc' => '2.0', 'id' => ++$this->id, 'method' => 'tools/list'));
+
+		return array_column(json_decode($body, true)['result']['tools'] ?? array(), 'name');
+	}
+
+	/**
 	 * Ruft ein Werkzeug auf.
 	 *
 	 * @param string               $tool      Werkzeugname

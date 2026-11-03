@@ -82,6 +82,9 @@ class TableAccess
 		'tl_newsletter' => array('newsletters', 'newsletter', 'pid'),
 		'tl_form' => array('forms', 'form', 'id'),
 		'tl_form_field' => array('forms', 'form', 'pid'),
+		// Meisterlisten (schachbulle/contao-championslists-bundle): freigegebene Listen der Gruppe
+		'tl_championslists' => array('championslists', 'championslists', 'id'),
+		'tl_championslists_items' => array('championslists', 'championslists', 'pid'),
 	);
 
 	/**
@@ -100,9 +103,11 @@ class TableAccess
 	public const SYSTEM_COLUMNS = array('id', 'pid', 'ptable', 'sorting', 'tstamp');
 
 	/**
-	 * Felder, die nie ausgegeben werden, egal in welcher Tabelle.
+	 * Felder, die nie ausgegeben und nie geschrieben werden, egal in welcher
+	 * Tabelle. IBAN und BIC (etwa in tl_adressen) sind Bankdaten, die Claude
+	 * für keine Aufgabe braucht.
 	 */
-	private const SECRET_FIELDS = array('password', 'secret', 'backupCodes', 'session', 'loginAttempts', 'trustedTokenVersion', 'privateKey', 'apiKey', 'token');
+	private const SECRET_FIELDS = array('password', 'secret', 'backupCodes', 'session', 'loginAttempts', 'trustedTokenVersion', 'privateKey', 'apiKey', 'token', 'iban', 'bic');
 
 	/**
 	 * @param ContaoFramework $framework   Lädt DCA- und Sprachdateien

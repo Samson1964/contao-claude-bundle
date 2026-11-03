@@ -133,7 +133,8 @@ $list = json_decode(post('{"jsonrpc":"2.0","id":1,"method":"tools/list"}'), true
 $names = array_column($list['result']['tools'] ?? array(), 'name');
 
 echo "Werkzeugliste\n";
-check(22 === count($names), 'tools/list mit allen 22 Werkzeugen', count($names).': '.implode(', ', array_diff($names, array('site_info', 'page_tree', 'article_list', 'content_list', 'news_search', 'news_get', 'file_list', 'dca_describe', 'record_list', 'record_get', 'record_history', 'preview_url'))));
+$writeTools = array('content_create', 'content_update', 'news_create', 'news_update', 'record_save', 'record_restore', 'publish_toggle', 'record_delete', 'file_upload', 'file_meta_update');
+check(array() === array_diff($writeTools, $names), 'tools/list mit allen zehn schreibenden Werkzeugen', count($names).' Werkzeuge');
 
 $archive = (int) row("SELECT id FROM tl_news_archive WHERE title = 'Claude-Test Nachrichten'")['id'];
 $stamp = date('H:i:s');

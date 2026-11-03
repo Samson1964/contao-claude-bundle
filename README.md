@@ -9,9 +9,10 @@ Rechte, nie mehr.
 
 Läuft mit **einem** Code-Stand unter Contao 4.13 und Contao 5.7.
 
-> **Stand: Ausbaustufe 4.** Lesende und schreibende Werkzeuge, Anmeldung über
-> OAuth 2.1 mit dem eigenen Backend-Zugang, Protokoll aller Schreibvorgänge und
-> ein Claude-Button in Backend und Frontend-Vorschau.
+> **Stand: Ausbaustufe 5.** Lesende und schreibende Werkzeuge, Anmeldung über
+> OAuth 2.1 mit dem eigenen Backend-Zugang, Protokoll aller Schreibvorgänge, ein
+> Claude-Button in Backend und Frontend-Vorschau und eigene Werkzeuge für
+> Meisterlisten und Adressen.
 
 ## Voraussetzungen
 
@@ -197,6 +198,20 @@ verbunden war, muss die Verbindung einmal trennen und neu verbinden.
 | `file_meta_update` | Titel, Alternativtext, Bildunterschrift, Link einer Datei für eine Sprache setzen |
 | `publish_toggle` | Veröffentlichen oder verstecken – nur mit Haken „Veröffentlichen erlauben“ |
 | `record_delete` | Löschen samt Kinddatensätzen, wiederherstellbar über System → Wiederherstellen – nur mit Haken „Löschen erlauben“ |
+
+### Für weitere schachbulle-Bundles
+
+Erscheinen nur, wenn das jeweilige Bundle installiert ist.
+
+| Werkzeug | Bundle | Tut |
+| --- | --- | --- |
+| `championslist_search` | `schachbulle/contao-championslists-bundle` | Meisterlisten auflisten; Einträge nach Liste, Jahr, Name, Verein oder Ort suchen |
+| `championslist_add` | `schachbulle/contao-championslists-bundle` | Neuen Eintrag (Jahr, Name, Ort …) in eine Liste schreiben, unveröffentlicht; braucht freigegebenes Schreiben |
+| `address_search` | `schachbulle/contao-adressen-bundle` | Adressen nach Name, Verein, Ort und Funktion suchen; Funktionen mit Namen. Ändern über `record_save` |
+
+Meisterlisten folgen den freigegebenen Listen der Benutzergruppe wie im Backend.
+Adressen zeigen, was der Backend-Zugang sieht; **IBAN und BIC** hält das Bundle
+in jeder Tabelle zurück und lässt sie auch nicht schreiben.
 
 **Gespeichert wird wie im Backend.** Die Werkzeuge nutzen Contaos eigenes
 `DC_Table` (Anlegen, Speichern, Löschen). Dadurch laufen dieselben Schritte wie

@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.5.0 (2026-11-03)
+
+* Add: Werkzeuge `championslist_search` und `championslist_add` für schachbulle/contao-championslists-bundle, `address_search` für schachbulle/contao-adressen-bundle; sie erscheinen nur, wenn das Bundle installiert ist
+* Add: Meisterlisten folgen beim Lesen den freigegebenen Listen der Benutzergruppe (Feld „championslists“)
+* Change: IBAN und BIC werden in keiner Tabelle ausgegeben oder geschrieben
+
 ## Version 0.4.0 (2026-11-03)
 
 * Add: Claude-Button in der Backend-Kopfzeile (Contao 4.13 und 5.7) und in der Frontend-Vorschau, nur für Benutzer, die Claude verbinden dürfen
