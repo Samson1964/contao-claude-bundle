@@ -1,5 +1,17 @@
 # Changelog
 
+## Version 0.3.0 (2026-11-03)
+
+* Add: Schreibende Werkzeuge `content_create`, `content_update`, `news_create`, `news_update`, `record_save`, `record_restore`, `publish_toggle`, `record_delete`, `file_upload`, `file_meta_update`
+* Add: Gespeichert wird über Contaos eigenes DC_Table wie im Backend: onload_callback, Widget-Prüfung, load/save_callback, onsubmit_callback, Versionen, Cache-Tags, tl_undo und unter Contao 5 die DataContainer-Voter; jeder Vorgang in einer Transaktion
+* Add: Einstellungen „Schreibende Werkzeuge freigeben“, „Veröffentlichen erlauben“ und „Löschen erlauben“ (alle standardmäßig aus); Scope `contao:write` für Verbindungen, die nach dem Einschalten entstehen
+* Add: Neues entsteht immer unveröffentlicht; Sichtbarkeit ändert nur `publish_toggle`
+* Add: Verweissuche vor dem Löschen (Insert-Tags, Weiterleitungen, eingebundene Elemente, Kinddatensätze)
+* Add: Backend-Modul System → Claude-Protokoll (`tl_claude_log`) mit allen Schreibversuchen, Aufbewahrung 180 Tage
+* Change: `/mcp` gilt für Contao nach der Anmeldung als Backend-Anfrage, damit Insert-Tags beim Speichern nicht maskiert werden
+* Fix: Feldrechte unter Contao 5: Felder ohne `exclude`-Angabe gelten dort als gesperrt (betraf auch `editable` in `dca_describe`)
+* Fix: README nennt die Ausnahme vom HTTP-Basic-Login, ohne die claude.ai „Registrierung fehlgeschlagen“ meldet
+
 ## Version 0.2.0 (2026-11-02)
 
 * Add: Anmeldung über OAuth 2.1 mit dem eigenen Backend-Zugang, für claude.ai, die Claude-Apps und Claude Code: Metadaten nach RFC 9728 und RFC 8414, Bestätigungsseite hinter dem Backend-Login, Code-Tausch mit PKCE (S256), Erneuerung mit Rotation, Widerruf nach RFC 7009

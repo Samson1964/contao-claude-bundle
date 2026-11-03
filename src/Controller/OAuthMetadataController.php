@@ -57,7 +57,7 @@ class OAuthMetadataController
 		return $this->respond($request, fn (): array => array(
 			'resource' => $this->endpoints->getResource(),
 			'authorization_servers' => array($this->endpoints->getIssuer()),
-			'scopes_supported' => Scopes::GRANTABLE,
+			'scopes_supported' => Scopes::grantable($this->settings->isWriteEnabled()),
 			'bearer_methods_supported' => array('header'),
 			'resource_name' => 'Contao '.$request->getHost(),
 		));
@@ -82,7 +82,7 @@ class OAuthMetadataController
 			'authorization_endpoint' => $this->endpoints->getAuthorizationEndpoint(),
 			'token_endpoint' => $this->endpoints->getTokenEndpoint(),
 			'revocation_endpoint' => $this->endpoints->getRevocationEndpoint(),
-			'scopes_supported' => Scopes::GRANTABLE,
+			'scopes_supported' => Scopes::grantable($this->settings->isWriteEnabled()),
 			'response_types_supported' => array('code'),
 			'response_modes_supported' => array('query'),
 			'grant_types_supported' => array('authorization_code', 'refresh_token'),

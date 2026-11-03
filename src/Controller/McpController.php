@@ -82,6 +82,15 @@ class McpController
 	 */
 	public function __invoke(Request $request): Response
 	{
+		// Die Route selbst hat keinen _scope, sonst schickte die Backend-Firewall
+		// jede Anfrage ohne Sitzung zur Anmeldung. Die Firewall ist an dieser
+		// Stelle schon durchlaufen; für Contao gilt die Anfrage ab jetzt als
+		// Backend-Anfrage. Das braucht das Schreiben: Im Frontend maskiert
+		// Input::post() Insert-Tags („{{“ wird zu „&#123;&#123;“), in 4.13 über
+		// TL_MODE, das beim Start des Frameworks festgelegt wird, in 5.7 über
+		// den ScopeMatcher bei jedem Aufruf.
+		$request->attributes->set('_scope', 'backend');
+
 		$this->framework->initialize();
 
 		if ($request->isMethod('GET')) {
@@ -201,7 +210,7 @@ class McpController
 			$header .= sprintf(', error="%s"', $error);
 		}
 
-		$header .= sprintf(', resource_metadata="%s", scope="%s"', $this->endpoints->getResourceMetadataUrl(), implode(' ', Scopes::GRANTABLE));
+		$header .= sprintf(', resource_metadata="%s", scope="%s"', $this->endpoints->getResourceMetadataUrl(), implode(' ', Scopes::grantable($this->settings->isWriteEnabled())));
 
 		$response->headers->set('WWW-Authenticate', $header);
 

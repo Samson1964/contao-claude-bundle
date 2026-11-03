@@ -142,7 +142,7 @@ class AuthorizeController
 			return $this->page(array('error' => $denied, 'cancelUrl' => $cancelUrl, 'user' => $userView), Response::HTTP_FORBIDDEN);
 		}
 
-		$scopes = Scopes::grant($params['scope']);
+		$scopes = Scopes::grant($params['scope'], $this->settings->isWriteEnabled());
 
 		if ($request->isMethod('POST')) {
 			if ('allow' !== $request->request->get('decision')) {

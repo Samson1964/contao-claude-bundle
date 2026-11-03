@@ -58,4 +58,14 @@ interface ToolInterface
 	 *                Werkzeug in tools/list erscheint
 	 */
 	public function getRequiredScope(): string;
+
+	/**
+	 * Gibt an, ob das Werkzeug in dieser Installation gerade angeboten wird.
+	 *
+	 * Schreibende Werkzeuge hängen an den Schaltern in den Einstellungen;
+	 * ein abgeschaltetes Werkzeug erscheint nicht in tools/list.
+	 *
+	 * @return bool true, wenn das Werkzeug angemeldet werden soll
+	 */
+	public function isAvailable(): bool;
 }

@@ -36,16 +36,18 @@ class TokenValidatorTest extends TestCase
 	}
 
 	/**
-	 * Der richtige Schlüssel liefert den Testbenutzer mit Leserecht.
+	 * Der richtige Schlüssel liefert den Testbenutzer mit beiden Scopes; ob
+	 * geschrieben werden darf, entscheidet erst der Schalter in den Einstellungen.
 	 */
-	public function testValidTokenYieldsReadClient(): void
+	public function testValidTokenYieldsTestClient(): void
 	{
 		$client = $this->validator('geheim', 42)->validate('geheim');
 
 		$this->assertInstanceOf(AuthenticatedClient::class, $client);
 		$this->assertSame(42, $client->userId);
 		$this->assertTrue($client->hasScope(AuthenticatedClient::SCOPE_READ));
-		$this->assertFalse($client->hasScope(AuthenticatedClient::SCOPE_WRITE));
+		$this->assertTrue($client->hasScope(AuthenticatedClient::SCOPE_WRITE));
+		$this->assertFalse($client->isOAuth());
 	}
 
 	/**

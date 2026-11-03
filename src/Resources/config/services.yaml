@@ -3,8 +3,9 @@
 # die Werkzeuge über die Schnittstelle ToolInterface (Tag contao_claude.tool),
 # die Bereinigung über #[AsCronJob]. Ausgenommen sind die Klassen, die
 # Symfony bzw. der Contao Manager selbst laden, die Ressourcen, das
-# klassische Backend-Modul (erzeugt Contao mit „new“) und die reinen
-# Wertobjekte und Hilfsklassen ohne Zustand.
+# klassische Backend-Modul (erzeugt Contao mit „new“), der DataContainer
+# für das Schreiben (je Vorgang neu erzeugt) und die reinen Wertobjekte und
+# Hilfsklassen ohne Zustand.
 services:
     _defaults:
         autowire: true
@@ -38,6 +39,8 @@ services:
             - '../../OAuth/Scopes.php'
             - '../../Security/AuthenticatedClient.php'
             - '../../Security/LoginFailedException.php'
+            - '../../Write/CapturedRedirect.php'
+            - '../../Write/WriteDataContainer.php'
 
     # Den Dienst gibt es erst ab Contao 5; unter 4.13 bleibt das Argument null
     Schachbulle\ContaoClaudeBundle\Data\ContentUrls:
@@ -74,3 +77,11 @@ services:
         tags: ['controller.service_arguments']
         arguments:
             $csrf: '@contao.csrf.token_manager'
+
+    Schachbulle\ContaoClaudeBundle\Write\BackendEnvironment:
+        arguments:
+            $csrf: '@contao.csrf.token_manager'
+
+    Schachbulle\ContaoClaudeBundle\Write\FileWriter:
+        arguments:
+            $httpClient: '@?http_client'

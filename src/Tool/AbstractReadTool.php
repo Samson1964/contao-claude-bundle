@@ -50,6 +50,16 @@ abstract class AbstractReadTool implements ToolInterface
 	}
 
 	/**
+	 * Lesende Werkzeuge gibt es immer, solange der Server eingeschaltet ist.
+	 *
+	 * @return bool Immer true
+	 */
+	public function isAvailable(): bool
+	{
+		return true;
+	}
+
+	/**
 	 * Begrenzt eine Seitengröße auf einen sinnvollen Bereich.
 	 *
 	 * @param int $limit Der gewünschte Wert

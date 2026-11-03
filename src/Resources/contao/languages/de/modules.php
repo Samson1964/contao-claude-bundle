@@ -9,5 +9,6 @@ declare(strict_types=1);
  * @license LGPL-3.0-or-later
  */
 
-$GLOBALS['TL_LANG']['MOD']['claude_mcp'] = array('MCP-Server', 'Contao als MCP-Server für Claude: Notschalter, wer sich verbinden darf, Hausregeln, Sperrliste und Testschlüssel.');
+$GLOBALS['TL_LANG']['MOD']['claude_mcp'] = array('MCP-Server', 'Contao als MCP-Server für Claude: Notschalter, wer sich verbinden darf, Schreibrechte, Hausregeln, Sperrliste und Testschlüssel.');
 $GLOBALS['TL_LANG']['MOD']['claude_connections'] = array('Claude-Verbindungen', 'Mit Claude verbundene Backend-Zugänge ansehen und widerrufen.');
+$GLOBALS['TL_LANG']['MOD']['claude_log'] = array('Claude-Protokoll', 'Was Claude mit welchem Backend-Zugang angelegt, geändert, veröffentlicht oder gelöscht hat, auch abgewiesene Versuche.');

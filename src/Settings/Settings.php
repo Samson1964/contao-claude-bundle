@@ -33,6 +33,9 @@ class Settings
 	public const KEY_TEST_TOKEN_CREATED = 'claudeTestTokenCreated';
 	public const KEY_ALLOW_ADMINS = 'claudeAllowAdmins';
 	public const KEY_ALLOWED_GROUPS = 'claudeAllowedGroups';
+	public const KEY_WRITE_ENABLED = 'claudeWriteEnabled';
+	public const KEY_PUBLISH_ENABLED = 'claudePublishEnabled';
+	public const KEY_DELETE_ENABLED = 'claudeDeleteEnabled';
 
 	/**
 	 * @param ContaoFramework $framework Liefert den Adapter auf Contao\Config;
@@ -136,6 +139,48 @@ class Settings
 	public function getAllowedGroups(): array
 	{
 		return array_values(array_filter(array_map('intval', StringUtil::deserialize($this->get(self::KEY_ALLOWED_GROUPS), true))));
+	}
+
+	/**
+	 * Gibt an, ob Claude Inhalte anlegen und ändern darf.
+	 *
+	 * Ohne Einstellung nicht: Eine Installation bleibt lesend, bis jemand das
+	 * Schreiben im Backend bewusst freigibt. Ist der Schalter aus, erscheinen
+	 * die schreibenden Werkzeuge auch für Verbindungen nicht, die das Recht
+	 * „contao:write“ früher erhalten haben.
+	 *
+	 * @return bool true, wenn die schreibenden Werkzeuge freigegeben sind
+	 */
+	public function isWriteEnabled(): bool
+	{
+		return (bool) $this->get(self::KEY_WRITE_ENABLED);
+	}
+
+	/**
+	 * Gibt an, ob Claude veröffentlichen und verstecken darf.
+	 *
+	 * Gilt nur zusammen mit isWriteEnabled(). Ohne diesen Schalter legt Claude
+	 * alles unveröffentlicht an und darf Felder wie „published“ oder
+	 * „invisible“ nicht ändern.
+	 *
+	 * @return bool true, wenn publish_toggle freigegeben ist
+	 */
+	public function isPublishEnabled(): bool
+	{
+		return $this->isWriteEnabled() && (bool) $this->get(self::KEY_PUBLISH_ENABLED);
+	}
+
+	/**
+	 * Gibt an, ob Claude Datensätze löschen darf.
+	 *
+	 * Gilt nur zusammen mit isWriteEnabled(). Gelöscht wird wie im Backend
+	 * über tl_undo, also wiederherstellbar.
+	 *
+	 * @return bool true, wenn record_delete freigegeben ist
+	 */
+	public function isDeleteEnabled(): bool
+	{
+		return $this->isWriteEnabled() && (bool) $this->get(self::KEY_DELETE_ENABLED);
 	}
 
 	/**

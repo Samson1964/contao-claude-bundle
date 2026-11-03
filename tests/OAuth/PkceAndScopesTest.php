@@ -38,7 +38,8 @@ class PkceAndScopesTest extends TestCase
 	}
 
 	/**
-	 * Vergeben wird nur contao:read; Unbekanntes fällt still heraus.
+	 * Ohne freigegebenes Schreiben gibt es nur contao:read; Unbekanntes fällt
+	 * still heraus.
 	 */
 	public function testScopes(): void
 	{
@@ -46,6 +47,19 @@ class PkceAndScopesTest extends TestCase
 		$this->assertSame(array('contao:read'), Scopes::grant('contao:write'));
 		$this->assertSame(array('contao:read'), Scopes::grant(null));
 		$this->assertSame(array('a', 'b'), Scopes::split(' a  b '));
+	}
+
+	/**
+	 * Mit freigegebenem Schreiben: contao:write nur auf Anfrage oder ohne
+	 * Angabe, Lesen immer dabei.
+	 */
+	public function testScopesWithWriteEnabled(): void
+	{
+		$this->assertSame(array('contao:read', 'contao:write'), Scopes::grantable(true));
+		$this->assertSame(array('contao:read', 'contao:write'), Scopes::grant(null, true));
+		$this->assertSame(array('contao:read', 'contao:write'), Scopes::grant('contao:read contao:write', true));
+		$this->assertSame(array('contao:read', 'contao:write'), Scopes::grant('contao:write', true));
+		$this->assertSame(array('contao:read'), Scopes::grant('contao:read', true));
 	}
 
 	/**

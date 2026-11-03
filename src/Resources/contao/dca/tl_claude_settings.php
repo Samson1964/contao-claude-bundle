@@ -34,7 +34,7 @@ $GLOBALS['TL_DCA']['tl_claude_settings'] = array
 
 	'palettes' => array
 	(
-		'default' => '{server_legend},claudeMcpEnabled;{connect_legend},claudeAllowedGroups,claudeAllowAdmins;{instructions_legend},claudeInstructions;{access_legend},claudeBlockedTables;{test_legend},claudeTestUser,claudeTestTokenNew',
+		'default' => '{server_legend},claudeMcpEnabled;{connect_legend},claudeAllowedGroups,claudeAllowAdmins;{write_legend},claudeWriteEnabled,claudePublishEnabled,claudeDeleteEnabled;{instructions_legend},claudeInstructions;{access_legend},claudeBlockedTables;{test_legend},claudeTestUser,claudeTestTokenNew',
 	),
 
 	'fields' => array
@@ -51,6 +51,21 @@ $GLOBALS['TL_DCA']['tl_claude_settings'] = array
 			'eval'       => array('multiple' => true, 'tl_class' => 'clr'),
 		),
 		'claudeAllowAdmins' => array
+		(
+			'inputType' => 'checkbox',
+			'eval'      => array('tl_class' => 'clr'),
+		),
+		'claudeWriteEnabled' => array
+		(
+			'inputType' => 'checkbox',
+			'eval'      => array('tl_class' => 'clr'),
+		),
+		'claudePublishEnabled' => array
+		(
+			'inputType' => 'checkbox',
+			'eval'      => array('tl_class' => 'clr'),
+		),
+		'claudeDeleteEnabled' => array
 		(
 			'inputType' => 'checkbox',
 			'eval'      => array('tl_class' => 'clr'),

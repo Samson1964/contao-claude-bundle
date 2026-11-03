@@ -28,3 +28,8 @@ $GLOBALS['BE_MOD']['system']['claude_connections'] = array
 (
 	'callback' => ConnectionsModule::class,
 );
+
+$GLOBALS['BE_MOD']['system']['claude_log'] = array
+(
+	'tables' => array('tl_claude_log'),
+);

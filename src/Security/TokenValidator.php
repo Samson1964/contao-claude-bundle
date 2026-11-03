@@ -75,8 +75,10 @@ class TokenValidator
 		$hash = $this->settings->getTestTokenHash();
 		$userId = $this->settings->getTestUserId();
 
+		// Der Testschlüssel trägt beide Scopes; ob geschrieben werden darf,
+		// entscheidet wie bei OAuth-Verbindungen der Schalter in den Einstellungen
 		if (null !== $hash && $userId > 0 && hash_equals($hash, Settings::hashToken($token))) {
-			return new AuthenticatedClient($userId, array(AuthenticatedClient::SCOPE_READ), 'Testschlüssel');
+			return new AuthenticatedClient($userId, array(AuthenticatedClient::SCOPE_READ, AuthenticatedClient::SCOPE_WRITE), 'Testschlüssel');
 		}
 
 		return $this->authorizationServer->validateAccessToken($token, time());

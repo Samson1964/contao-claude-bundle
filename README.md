@@ -1,7 +1,7 @@
 # Claude-Bundle für Contao
 
 Stellt eine Contao-Installation als **MCP-Server** bereit. Claude – claude.ai im
-Browser, die Desktop- und Handy-App und Claude Code – liest dann Seiten,
+Browser, die Desktop- und Handy-App und Claude Code – liest und pflegt dann Seiten,
 Artikel, Inhaltselemente, Nachrichten, Dateien und beliebige Datensätze über
 eine Schnittstelle statt über die Backend-Oberfläche. Jeder Redakteur meldet
 sich mit seinem eigenen Backend-Zugang an, und Claude bekommt genau dessen
@@ -9,9 +9,9 @@ Rechte, nie mehr.
 
 Läuft mit **einem** Code-Stand unter Contao 4.13 und Contao 5.7.
 
-> **Stand: Ausbaustufe 2.** Lesende Werkzeuge, Anmeldung über OAuth 2.1 mit
-> dem eigenen Backend-Zugang. Schreibende Werkzeuge und der Claude-Button im
-> Backend folgen in den nächsten Stufen.
+> **Stand: Ausbaustufe 3.** Lesende und schreibende Werkzeuge, Anmeldung über
+> OAuth 2.1 mit dem eigenen Backend-Zugang, Protokoll aller Schreibvorgänge.
+> Der Claude-Button im Backend folgt in der nächsten Stufe.
 
 ## Voraussetzungen
 
@@ -24,6 +24,20 @@ Läuft mit **einem** Code-Stand unter Contao 4.13 und Contao 5.7.
 - Der Webserver muss `/.well-known/oauth-protected-resource…` und
   `/.well-known/oauth-authorization-server` an Contao durchreichen. Manche
   Konfigurationen sperren Pfade mit Punkt am Anfang.
+- Liegt die Seite hinter einem HTTP-Basic-Login (`AuthType Basic`), müssen
+  `/mcp`, `/mcp/token`, `/mcp/revoke` und die beiden `/.well-known/…`-Adressen
+  davon ausgenommen sein. Claudes Server kann keinen Basic-Login beantworten;
+  er bekommt sonst statt der OAuth-Metadaten nur ein 401 des Webservers, und
+  claude.ai meldet „Registrierung beim Anmeldedienst fehlgeschlagen“. Die
+  Bestätigungsseite unter `/contao/…` darf geschützt bleiben, sie öffnet der
+  Browser. Für Apache 2.4 (`THE_REQUEST`, weil Contao intern auf `index.php`
+  umleitet):
+
+  ```apache
+  <If "%{THE_REQUEST} =~ m#^[A-Z]+ /(mcp(/token|/revoke)?|\.well-known/oauth-(protected-resource(/mcp)?|authorization-server))[ ?]#">
+      Require all granted
+  </If>
+  ```
 
 Das Bundle bringt das offizielle MCP-SDK für PHP (`mcp/sdk`) mit. Es beherrscht
 beide Protokollfassungen auf demselben Endpunkt: das Verfahren mit
@@ -49,6 +63,9 @@ Im Backend unter **System → MCP-Server** (nur für Administratoren):
 | MCP-Server eingeschaltet | Notschalter. Ohne Haken antworten `/mcp` und alle OAuth-Endpunkte mit 503. Nach der Installation ist er aus. |
 | Erlaubte Benutzergruppen | Nur Mitglieder dieser Gruppen dürfen Claude verbinden. Ohne Auswahl dürfen alle. |
 | Administratoren dürfen sich verbinden | Ohne Haken weist die Anmeldung Administrator-Zugänge ab. |
+| Schreibende Werkzeuge freigeben | Claude darf anlegen und ändern, soweit der Backend-Zugang das darf. Ohne Haken bleibt die Installation lesend. |
+| Veröffentlichen erlauben | Schaltet `publish_toggle` frei. Ohne Haken bleibt Veröffentlichen Handarbeit im Backend. |
+| Löschen erlauben | Schaltet `record_delete` frei (wiederherstellbar über System → Wiederherstellen). |
 | Hausregeln für Claude | Text, den Claude beim Verbindungsaufbau als Anweisung bekommt, etwa „E-Mail-Adressen immer als `{{email::adresse}}`“. |
 | Zusätzlich gesperrte Tabellen | Durch Komma getrennt; `tl_foo_*` sperrt alle Tabellen mit diesem Anfang. |
 | Testschlüssel | Ein fester Schlüssel für einen gewählten Benutzer, zum Ausprobieren mit Claude Code und dem MCP Inspector (siehe unten). |
@@ -132,7 +149,9 @@ zusätzliche OAuth- oder JWT-Bibliothek.
 
 ## Werkzeuge
 
-Alle Werkzeuge sind als lesend gekennzeichnet (`readOnlyHint`).
+### Lesen
+
+Als lesend gekennzeichnet (`readOnlyHint`), immer verfügbar.
 
 | Werkzeug | Liefert |
 | --- | --- |
@@ -160,6 +179,63 @@ Die Ausgabe ist für Claude aufbereitet:
 Volle Datensätze zeigen nur die Felder der Palette, die das Backend für den
 jeweiligen Typ zeigt.
 
+### Schreiben
+
+Nur bei gesetztem Haken „Schreibende Werkzeuge freigeben“ und nur für
+Verbindungen mit dem Recht `contao:write`. Wer schon vor dem Einschalten
+verbunden war, muss die Verbindung einmal trennen und neu verbinden.
+
+| Werkzeug | Tut |
+| --- | --- |
+| `content_create` | Inhaltselement in einem Artikel, einer Nachricht, einem Termin … anlegen, am Ende, am Anfang oder hinter einem Element |
+| `content_update` | Felder eines Inhaltselements ändern, auch den Typ |
+| `news_create` | Nachricht anlegen, auf Wunsch gleich mit Textelement |
+| `news_update` | Felder einer Nachricht ändern |
+| `record_save` | Datensatz einer beliebigen Tabelle anlegen (ohne `id`) oder ändern (mit `id`), auch in eigenen Erweiterungen |
+| `record_restore` | Frühere Version wiederherstellen (Versionen liefert `record_history`) |
+| `file_upload` | Neue Datei in einen vorhandenen Ordner legen, als Base64 oder von einer öffentlichen https-Adresse, auf Wunsch mit Titel und Alternativtext |
+| `file_meta_update` | Titel, Alternativtext, Bildunterschrift, Link einer Datei für eine Sprache setzen |
+| `publish_toggle` | Veröffentlichen oder verstecken – nur mit Haken „Veröffentlichen erlauben“ |
+| `record_delete` | Löschen samt Kinddatensätzen, wiederherstellbar über System → Wiederherstellen – nur mit Haken „Löschen erlauben“ |
+
+**Gespeichert wird wie im Backend.** Die Werkzeuge nutzen Contaos eigenes
+`DC_Table` (Anlegen, Speichern, Löschen). Dadurch laufen dieselben Schritte wie
+beim Klick auf „Speichern“:
+
+- `onload_callback` mit den Rechteprüfungen, auch denen eigener Erweiterungen
+- Prüfung jedes Wertes durch sein Widget: Pflichtfeld, Format, Optionen, Länge
+- `load_callback` und `save_callback`, etwa die Alias-Erzeugung
+- `onsubmit_callback`, neue Version, Leeren der Cache-Tags
+- unter Contao 5 die DataContainer-Voter
+
+Was Contao ablehnt, kommt mit Contaos Meldung bei Claude an („Bitte füllen Sie
+das Feld "Titel" aus!“). Jeder Vorgang läuft in einer Datenbank-Transaktion:
+Scheitert ein Feld, bleibt der Datensatz, wie er war.
+
+**Regeln, die strenger sind als das Backend:**
+
+- Neues entsteht immer unveröffentlicht. Inhaltselemente unter einer
+  unveröffentlichten Nachricht oder einem unveröffentlichten Artikel entstehen
+  sichtbar (sie erscheinen mit dem Elternelement), unter einem veröffentlichten
+  versteckt.
+- `published` und `invisible` ändert nur `publish_toggle`.
+- Nur Felder der Palette, die für den Datensatz gilt; Typ- und Auswahlfelder
+  werden zuerst gesetzt, damit die Palette stimmt.
+- Vor dem Löschen sucht das Bundle nach Verweisen (Insert-Tags,
+  Weiterleitungen, eingebundene Elemente, mitgelöschte Kinddatensätze) und
+  löscht nur nach ausdrücklicher Bestätigung.
+- Dateien: nie überschreiben, kein SVG, nur die Dateitypen und die Größe aus
+  den Einstellungen, Download nur über https und nur von öffentlichen Adressen.
+  Neue Ordner legt ein Mensch an. Große Bilder werden nicht verkleinert.
+- Werte kommen in der Form von `record_get` zurück: ISO-Datum, Dateipfad statt
+  UUID, `true`/`false`. Das Bundle wandelt sie in das Format der Installation.
+
+**Protokoll:** Jeder Schreibversuch, auch ein abgewiesener, steht unter
+**System → Claude-Protokoll**: Zeit, Benutzer, Verbindung, Werkzeug, Tabelle,
+ID, Feldnamen, Ergebnis. Inhalte nicht; die zeigen die Versionen. Wer nicht
+Administrator ist, sieht nur die eigenen Einträge. Einträge werden nach
+180 Tagen gelöscht.
+
 ## Rechte
 
 Es gelten die Rechte des Backend-Benutzers und seiner Gruppen, wie im Backend:
@@ -175,15 +251,21 @@ Es gelten die Rechte des Backend-Benutzers und seiner Gruppen, wie im Backend:
   Felder außer Kennwörtern und Feldern mit `doNotShow` oder `hideInput`. Die
   Feldfreigaben einer Gruppe regeln nur das Bearbeiten; `dca_describe` meldet sie
   als `editable`.
+- **Schreiben:** Feldfreigaben („Erlaubte Felder“) wie im Backend. In Contao 5
+  ist ein Feld ohne `exclude`-Angabe gesperrt, bis die Gruppe es freigibt; dort
+  gelten zusätzlich die **Tabellenrechte** (Anlegen, Bearbeiten, Löschen) und
+  die erlaubten Elementtypen. Für Dateien die Rechte „Dateien hochladen“ bzw.
+  „Dateien bearbeiten“ der Dateiverwaltung.
 - **Sperrliste:** Immer gesperrt sind, auch für Administratoren:
   - Benutzer, Gruppen und Mitglieder
   - Einstellungen, Versionen, Wiederherstellung, Protokolle und Cronjobs
   - Newsletter-Empfänger und Formular-Einsendungen (`tl_lead*`)
   - der Suchindex und die Tabellen dieses Bundles
 
-Tabellen eigener Erweiterungen kennen nur Modulrecht und Sperrliste. Eigene
-Rechte solcher Erweiterungen (etwa „nur Archiv A“) prüft Contao in deren
-`onload_callback`, der hier nicht läuft; solche Tabellen bei Bedarf sperren.
+Beim Lesen kennen Tabellen eigener Erweiterungen nur Modulrecht und Sperrliste.
+Eigene Rechte solcher Erweiterungen (etwa „nur Archiv A“) prüft Contao in deren
+`onload_callback`; der läuft beim Schreiben mit, beim Lesen nicht. Solche
+Tabellen bei Bedarf sperren.
 
 ## Hinweise zum Server
 

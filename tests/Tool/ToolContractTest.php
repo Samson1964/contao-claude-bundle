@@ -13,6 +13,7 @@ namespace Schachbulle\ContaoClaudeBundle\Tests\Tool;
 
 use PHPUnit\Framework\TestCase;
 use Schachbulle\ContaoClaudeBundle\Security\AuthenticatedClient;
+use Schachbulle\ContaoClaudeBundle\Tool\AbstractWriteTool;
 use Schachbulle\ContaoClaudeBundle\Tool\ToolInterface;
 
 /**
@@ -42,7 +43,8 @@ class ToolContractTest extends TestCase
 	}
 
 	/**
-	 * Es gibt genau die zwölf Werkzeuge der Ausbaustufe 1.
+	 * Es gibt genau die zwölf lesenden Werkzeuge der Ausbaustufe 1 und die
+	 * zehn schreibenden der Ausbaustufe 3.
 	 */
 	public function testAllToolsPresent(): void
 	{
@@ -54,7 +56,7 @@ class ToolContractTest extends TestCase
 
 		sort($names);
 
-		$this->assertSame(array('article_list', 'content_list', 'dca_describe', 'file_list', 'news_get', 'news_search', 'page_tree', 'preview_url', 'record_get', 'record_history', 'record_list', 'site_info'), $names);
+		$this->assertSame(array('article_list', 'content_create', 'content_list', 'content_update', 'dca_describe', 'file_list', 'file_meta_update', 'file_upload', 'news_create', 'news_get', 'news_search', 'news_update', 'page_tree', 'preview_url', 'publish_toggle', 'record_delete', 'record_get', 'record_history', 'record_list', 'record_restore', 'record_save', 'site_info'), $names);
 	}
 
 	/**
@@ -108,9 +110,20 @@ class ToolContractTest extends TestCase
 		$this->assertMatchesRegularExpression('/^[a-z_]{1,64}$/', $tool->getName());
 		$this->assertGreaterThan(60, mb_strlen($tool->getDescription()));
 		$this->assertNotSame('', $tool->getTitle());
-		$this->assertTrue($annotations->readOnlyHint);
-		$this->assertFalse($annotations->destructiveHint);
-		$this->assertSame(AuthenticatedClient::SCOPE_READ, $tool->getRequiredScope());
+		$this->assertFalse($annotations->openWorldHint);
+
+		if ($tool instanceof AbstractWriteTool) {
+			$this->assertFalse($annotations->readOnlyHint);
+			$this->assertSame(\in_array($tool->getName(), array('record_delete', 'record_restore'), true), $annotations->destructiveHint);
+			$this->assertSame(AuthenticatedClient::SCOPE_WRITE, $tool->getRequiredScope());
+			// Ohne Einstellungen (Setter nicht aufgerufen) nie angeboten
+			$this->assertFalse($tool->isAvailable());
+		} else {
+			$this->assertTrue($annotations->readOnlyHint);
+			$this->assertFalse($annotations->destructiveHint);
+			$this->assertSame(AuthenticatedClient::SCOPE_READ, $tool->getRequiredScope());
+			$this->assertTrue($tool->isAvailable());
+		}
 	}
 
 	/**

@@ -153,7 +153,9 @@ check(202 === $note['status'], 'notifications/initialized → 202', (string) $no
 
 $list = rpc($url, $token, $session, array('jsonrpc' => '2.0', 'id' => 2, 'method' => 'tools/list'));
 $names = array_column($list['json']['result']['tools'] ?? array(), 'name');
-check(12 === \count($names), 'tools/list', implode(', ', $names));
+$readTools = array('site_info', 'page_tree', 'article_list', 'content_list', 'news_search', 'news_get', 'file_list', 'dca_describe', 'record_list', 'record_get', 'record_history', 'preview_url');
+// Mit freigegebenem Schreiben kommen die schreibenden Werkzeuge dazu
+check(array() === array_diff($readTools, $names), 'tools/list mit allen lesenden Werkzeugen', \count($names).': '.implode(', ', $names));
 
 $probes = json_decode((string) file_get_contents($probeFile), true);
 $id = 10;
