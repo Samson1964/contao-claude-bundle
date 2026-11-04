@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.5.1 (2026-11-04)
+
+* Add: Bricht Contao beim Start für `/mcp` ab (etwa durch eine Weiterleitung zur Backend-Anmeldung aus einer anderen Erweiterung), antwortet `/mcp` mit 500 und nennt Datei und Zeile des Verursachers; der vollständige Ablauf steht im System-Log
+* Add: Stellen im zusammengefassten Konfigurations-Cache (`var/cache/prod/contao/config/config.php`) werden auf die config.php des Bundles zurückgeführt
+
 ## Version 0.5.0 (2026-11-03)
 
 * Add: Meisterlisten (schachbulle/contao-championslists-bundle) folgen beim Lesen den freigegebenen Listen der Benutzergruppe, wie im Backend

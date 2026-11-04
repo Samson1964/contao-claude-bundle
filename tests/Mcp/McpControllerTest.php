@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Schachbulle\ContaoClaudeBundle\Tests\Mcp;
 
 use Contao\BackendUser;
+use Contao\CoreBundle\Exception\RedirectResponseException;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -27,6 +28,7 @@ use Schachbulle\ContaoClaudeBundle\Security\LoginFailedException;
 use Schachbulle\ContaoClaudeBundle\Security\Permissions;
 use Schachbulle\ContaoClaudeBundle\Security\TokenValidator;
 use Schachbulle\ContaoClaudeBundle\Settings\Settings;
+use Schachbulle\ContaoClaudeBundle\Mcp\StartupTrace;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -159,6 +161,24 @@ class McpControllerTest extends TestCase
 	}
 
 	/**
+	 * Bricht Contao beim Start mit einer Weiterleitung ab (auf schachbund.de
+	 * durch BackendUser::authenticate()), antwortet /mcp mit 500 und nennt das
+	 * Ziel, statt die Weiterleitung an Claude durchzureichen.
+	 */
+	public function testStartupRedirectIsReported(): void
+	{
+		$framework = $this->createMock(ContaoFramework::class);
+		$framework->method('initialize')->willThrowException(new RedirectResponseException('https://example.org/contao/login?_hash=x&redirect=y'));
+
+		$response = $this->controller($framework)(Request::create('https://example.org/mcp', 'GET'));
+		$body = json_decode((string) $response->getContent(), true);
+
+		$this->assertSame(500, $response->getStatusCode());
+		$this->assertStringContainsString('Weiterleitung nach https://example.org/contao/login)', $body['error']['message']);
+		$this->assertStringNotContainsString('_hash', $body['error']['message']);
+	}
+
+	/**
 	 * Handschlag, Werkzeugliste, Aufruf und Werkzeugfehler in einer Sitzung.
 	 */
 	public function testFullSession(): void
@@ -267,9 +287,12 @@ class McpControllerTest extends TestCase
 	/**
 	 * Baut den Controller mit Attrappen für Contao.
 	 *
+	 * @param ContaoFramework|null $framework Eigene Attrappe des Frameworks, etwa eine,
+	 *                                       die beim Start abbricht
+	 *
 	 * @return McpController Der Controller
 	 */
-	private function controller(): McpController
+	private function controller(?ContaoFramework $framework = null): McpController
 	{
 		$user = (new \ReflectionClass(BackendUser::class))->newInstanceWithoutConstructor();
 		$user->name = 'Test Redakteur';
@@ -312,6 +335,6 @@ class McpControllerTest extends TestCase
 		$policy = $this->createMock(ConnectionPolicy::class);
 		$policy->method('check')->willReturnCallback(static fn (int $userId): ?string => 6 === $userId ? 'Gesperrt.' : null);
 
-		return new McpController($this->createMock(ContaoFramework::class), $settings, new TokenValidator($settings, $server), $login, $context, $factory, new NullLogger(), $endpoints, $policy);
+		return new McpController($framework ?? $this->createMock(ContaoFramework::class), $settings, new TokenValidator($settings, $server), $login, $context, $factory, new NullLogger(), $endpoints, $policy, new StartupTrace('/projekt'));
 	}
 }

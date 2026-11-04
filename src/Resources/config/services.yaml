@@ -47,6 +47,11 @@ services:
         arguments:
             $contentUrlGenerator: '@?contao.routing.content_url_generator'
 
+    # Führt Abbrüche beim Start auf die config.php-Quelle zurück
+    Schachbulle\ContaoClaudeBundle\Mcp\StartupTrace:
+        arguments:
+            $resourceFinder: '@?contao.resource_finder'
+
     # http_client registriert Contao nicht in jeder Fassung; ohne ihn baut
     # die Klasse sich einen eigenen Client
     Schachbulle\ContaoClaudeBundle\OAuth\ClientRegistry:

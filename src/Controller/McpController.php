@@ -11,7 +11,9 @@ declare(strict_types=1);
 
 namespace Schachbulle\ContaoClaudeBundle\Controller;
 
+use Contao\CoreBundle\Exception\RedirectResponseException;
 use Contao\CoreBundle\Framework\ContaoFramework;
+use Contao\CoreBundle\Monolog\ContaoContext;
 use Mcp\Server;
 use Mcp\Server\Transport\Http\Middleware\CorsMiddleware;
 use Mcp\Server\Transport\StreamableHttpTransport;
@@ -20,6 +22,7 @@ use Psr\Log\LoggerInterface;
 use Schachbulle\ContaoClaudeBundle\Mcp\CallContext;
 use Schachbulle\ContaoClaudeBundle\Mcp\HttpBridge;
 use Schachbulle\ContaoClaudeBundle\Mcp\ServerFactory;
+use Schachbulle\ContaoClaudeBundle\Mcp\StartupTrace;
 use Schachbulle\ContaoClaudeBundle\OAuth\Endpoints;
 use Schachbulle\ContaoClaudeBundle\OAuth\Scopes;
 use Schachbulle\ContaoClaudeBundle\Security\BackendUserLogin;
@@ -54,6 +57,7 @@ class McpController
 	 * @param LoggerInterface  $logger         Für unerwartete Fehler
 	 * @param Endpoints        $endpoints      Adresse der Metadaten für die 401-Antwort
 	 * @param ConnectionPolicy $policy         Wer sich über OAuth verbinden darf
+	 * @param StartupTrace     $startupTrace   Wertet einen Abbruch beim Start von Contao aus
 	 */
 	public function __construct(
 		private readonly ContaoFramework $framework,
@@ -65,6 +69,7 @@ class McpController
 		private readonly LoggerInterface $logger,
 		private readonly Endpoints $endpoints,
 		private readonly ConnectionPolicy $policy,
+		private readonly StartupTrace $startupTrace,
 	) {
 	}
 
@@ -91,7 +96,11 @@ class McpController
 		// den ScopeMatcher bei jedem Aufruf.
 		$request->attributes->set('_scope', 'backend');
 
-		$this->framework->initialize();
+		try {
+			$this->framework->initialize();
+		} catch (\Throwable $exception) {
+			return $this->startupFailed($exception);
+		}
 
 		if ($request->isMethod('GET')) {
 			$response = $this->error(Response::HTTP_METHOD_NOT_ALLOWED, -32000, 'GET wird nicht unterstützt; Nachrichten bitte per POST senden.');
@@ -215,6 +224,42 @@ class McpController
 		$response->headers->set('WWW-Authenticate', $header);
 
 		return $response;
+	}
+
+	/**
+	 * Beantwortet einen Abbruch beim Start des Contao-Frameworks.
+	 *
+	 * Ohne diesen Fang gibt Contao eine Weiterleitung (etwa die zur
+	 * Backend-Anmeldung aus BackendUser::authenticate()) ungeprüft an den
+	 * Client weiter. claude.ai kann damit nichts anfangen und meldet nur, dass
+	 * die Verbindung nicht zustande kommt. Stattdessen landet der vollständige
+	 * Stack-Trace im System-Log von Contao, und die Antwort nennt die erste
+	 * Stelle außerhalb von Contao und Symfony.
+	 *
+	 * Das Framework gilt nach dem Abbruch als gestartet, ist es aber nur zum
+	 * Teil. Deshalb wird hier nichts mehr versucht, sondern sofort geantwortet.
+	 *
+	 * @param \Throwable $exception Der Abbruch
+	 *
+	 * @return Response 500 mit JSON-RPC-Fehlerobjekt
+	 */
+	private function startupFailed(\Throwable $exception): Response
+	{
+		$origin = $this->startupTrace->origin($exception);
+		$what = $exception instanceof RedirectResponseException
+			? sprintf('Weiterleitung nach %s', strtok((string) $exception->getResponse()->headers->get('Location'), '?'))
+			: sprintf('%s: %s', $exception::class, $exception->getMessage());
+
+		$this->logger->error(
+			sprintf("Claude-Bundle: Contao brach beim Start für /mcp ab (%s). Verursacher vermutlich: %s\n%s", $what, $origin ?? 'unbekannt', $this->startupTrace->describe($exception)),
+			array('contao' => new ContaoContext(__METHOD__, ContaoContext::ERROR)),
+		);
+
+		return $this->error(
+			Response::HTTP_INTERNAL_SERVER_ERROR,
+			-32603,
+			sprintf('Contao brach beim Start für /mcp ab (%s). Ausgelöst in %s. Einzelheiten stehen im System-Log von Contao.', $what, $origin ?? 'einer Stelle im Contao-Kern'),
+		);
 	}
 
 	/**

@@ -316,6 +316,12 @@ Tabellen bei Bedarf sperren.
   `var/claude/mcp-sessions` (nur Protokolldaten, keine Inhalte, 8 Stunden gültig).
 - Ein täglicher Cronjob räumt verfallene Codes und alte, widerrufene oder
   abgelaufene Verbindungen ab.
+- `/mcp` startet Contao im Backend-Modus. Bricht dabei eine andere Erweiterung
+  ab, etwa weil sie `BackendUser::authenticate()` aufruft und damit zur
+  Backend-Anmeldung umleitet, antwortet `/mcp` mit 500 und nennt die auslösende
+  Datei mit Zeile. Den vollständigen Ablauf zeigt das System-Log von Contao.
+  Ohne diesen Hinweis meldet claude.ai nur, dass die Verbindung nicht zustande
+  kommt.
 
 ## Entwicklung
 
