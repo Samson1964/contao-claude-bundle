@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 0.5.2 (2026-11-04)
+
+* Add: System → Claude-Verbindungen zeigt aufklappbar die Adresse für den Konnektor, die Schritte in claude.ai und die bekannten Fehlerbilder beim Verbinden
+* Add: README-Abschnitt „Wenn die Verbindung nicht klappt“
+* Fix: Das Claude-Symbol in der Backend-Kopfzeile hat die Linkfarbe wie Handbuch und Hinweise; in Contao 4.13 war es auf dem orangen Grund dunkel
+
 ## Version 0.5.1 (2026-11-04)
 
 * Add: Bricht Contao beim Start für `/mcp` ab (etwa durch eine Weiterleitung zur Backend-Anmeldung aus einer anderen Erweiterung), antwortet `/mcp` mit 500 und nennt Datei und Zeile des Verursachers; der vollständige Ablauf steht im System-Log

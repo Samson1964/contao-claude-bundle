@@ -14,6 +14,37 @@ $t = $GLOBALS['TL_LANG']['MSC']['claude_connections'];
 $datim = Config::get('datimFormat');
 ?>
 <?= $this->messages ?>
+<?php /* Hilfe zum Verbinden; zugeklappt, damit die Liste oben bleibt. Das
+   Backend setzt Listen ohne Zeichen und Abstände; die paar Regeln hier
+   stellen sie für diesen Block wieder her. */ ?>
+<style>
+  .claude-help details { margin: 0 0 8px; }
+  .claude-help summary { cursor: pointer; padding: 3px 0; }
+  .claude-help p { margin: 6px 0; }
+  .claude-help ol, .claude-help ul { margin: 6px 0 10px 22px; padding: 0; }
+  .claude-help ol { list-style: decimal; }
+  .claude-help ul { list-style: disc; }
+  .claude-help li { display: list-item; list-style: inherit; margin: 0 0 5px; line-height: 1.45; }
+</style>
+<div class="tl_listing_container claude-help">
+  <details>
+    <summary><strong><?= $t['help_connect'] ?></strong></summary>
+    <p><?= $t['help_url'] ?> <code style="user-select:all"><?= StringUtil::specialchars($this->mcpUrl) ?></code></p>
+    <ol>
+      <?php foreach ($t['help_steps'] as $step): ?>
+        <li><?= $step ?></li>
+      <?php endforeach; ?>
+    </ol>
+  </details>
+  <details>
+    <summary><strong><?= $t['help_trouble'] ?></strong></summary>
+    <ul>
+      <?php foreach ($t['help_problems'] as $problem): ?>
+        <li><?= $problem ?></li>
+      <?php endforeach; ?>
+    </ul>
+  </details>
+</div>
 <div class="tl_listing_container list_view">
   <?php if (empty($this->rows)): ?>
     <p class="tl_empty"><?= $t['empty'] ?></p>

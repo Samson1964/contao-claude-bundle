@@ -33,6 +33,12 @@ html[data-color-scheme="dark"] {
 	font-weight: bold;
 }
 
+/* In der Backend-Kopfzeile wie die Symbole daneben (Handbuch, Hinweise) in
+   der Linkfarbe; die Akzentfarbe verschwamm in 4.13 auf dem orangen Grund */
+#tmenu .claude-button::before {
+	color: inherit;
+}
+
 /* Frontend: schwebend unten rechts */
 .claude-button--floating {
 	position: fixed;

@@ -79,7 +79,7 @@ anlegen (etwa nur Artikel, Nachrichten und Dateien) und nur diese erlauben.
 
 ### claude.ai, Desktop, Handy
 
-In Claude unter **Einstellungen → Connectors → Benutzerdefinierten Connector
+In Claude unter **Einstellungen → Konnektoren → Benutzerdefinierten Konnektor
 hinzufügen** die Adresse `https://www.example.org/mcp` eintragen. Eine Client-ID
 ist nicht nötig. Claude öffnet die Anmeldung von Contao. Wer noch nicht im
 Backend angemeldet ist, meldet sich dort an, auch mit Zwei-Faktor-Abfrage.
@@ -100,6 +100,27 @@ Unter **System → Claude-Verbindungen** stehen die Verbindungen mit Anwendung,
 Zeitpunkten und Status; dort lassen sie sich widerrufen. Benutzer sehen ihre
 eigenen Verbindungen, Administratoren alle. Das Modul folgt den normalen
 Modulrechten, also der Gruppe der Claude-Nutzer das Modul freigeben.
+
+Über der Liste stehen aufklappbar die Adresse für den Konnektor, die Schritte in
+claude.ai und die bekannten Fehlerbilder aus dem nächsten Abschnitt, damit
+Benutzer ohne diese Anleitung zurechtkommen.
+
+### Wenn die Verbindung nicht klappt
+
+| Was Claude meldet | Ursache | Abhilfe |
+| --- | --- | --- |
+| „Registrierung fehlgeschlagen“ | Die Seite liegt hinter einem HTTP-Basic-Login. | `/mcp`, `/mcp/token`, `/mcp/revoke` und `/.well-known/oauth-*` davon ausnehmen (siehe Voraussetzungen). |
+| „Der Server konnte nicht überprüft werden“, Fehler 500 | Contao bricht beim Start für `/mcp` ab, meist weil eine Erweiterung oder eine eigene `config.php` `BackendUser::authenticate()` aufruft und damit zur Backend-Anmeldung umleitet. | Datei und Zeile stehen in der Antwort von `/mcp` und im System-Log („Claude-Bundle: Contao brach beim Start …“). Den Aufruf entfernen; wer nur wissen will, wer angemeldet ist, fragt zuerst `contao.security.token_checker`->`hasBackendUser()` und erst dann `BackendUser::getInstance()`. |
+| Fehler 503 | Der Notschalter unter **System → MCP-Server** ist aus. | Einschalten. |
+| Fehler 403 nach der Anmeldung | Der Benutzer gehört keiner freigegebenen Gruppe an, oder Administratoren sind nicht zugelassen. | Unter **System → MCP-Server** Gruppe oder Schalter setzen. |
+| Claude verlangt immer wieder eine Anmeldung | Der Header `Authorization` erreicht PHP nicht. | Regel in der `.htaccess` (siehe Hinweise zum Server). |
+| Claude kann nicht schreiben | Die Verbindung entstand vor dem Einschalten der Schreibrechte. | Verbindung widerrufen und neu verbinden. |
+| Die Verbindung ist weg | Widerrufen oder abgelaufen. | Unter **System → Claude-Verbindungen** nachsehen und neu verbinden. |
+
+Zeigt claude.ai beim Anlegen „Der Server konnte nicht überprüft werden“, lässt
+sich zwar mit „Trotzdem fortfahren“ weitermachen, die Verbindung bricht dann aber
+bei der ersten Anfrage ab. Erst die Ursache beheben, dann den Konnektor neu
+anlegen.
 
 ### Testschlüssel (ohne OAuth)
 

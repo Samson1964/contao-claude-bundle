@@ -18,6 +18,7 @@ use Contao\Input;
 use Contao\Message;
 use Contao\System;
 use Schachbulle\ContaoClaudeBundle\OAuth\GrantRepository;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Backend-Modul System → Claude-Verbindungen.
@@ -90,5 +91,8 @@ class ConnectionsModule extends BackendModule
 		$this->Template->showUser = null === $ownerFilter;
 		$this->Template->requestToken = System::getContainer()->get('contao.csrf.token_manager')->getDefaultTokenValue();
 		$this->Template->messages = Message::generate();
+
+		// Adresse für den Konnektor in claude.ai, für den Hilfeteil über der Liste
+		$this->Template->mcpUrl = System::getContainer()->get('router')->generate('claude_mcp', array(), UrlGeneratorInterface::ABSOLUTE_URL);
 	}
 }
